@@ -1,0 +1,14 @@
+[run]
+branch = True
+source =
+    pinbridge_sdk
+omit =
+    */__pycache__/*
+
+[report]
+show_missing = True
+skip_empty = True
+fail_under = 95
+
+[xml]
+output = coverage.xml

@@ -1,0 +1,277 @@
+from __future__ import annotations
+
+import json
+from datetime import datetime
+
+import httpx
+import pytest
+from _payloads import (
+    UUID1,
+    UUID3,
+    UUID4,
+    api_key_create_response,
+    api_key_response,
+    auth_response,
+    billing_status_response,
+    board_response,
+    health_response,
+    job_status_response,
+    me_response,
+    pin_response,
+    pinterest_account_response,
+    pricing_catalog_response,
+    profile_response,
+    rate_meter_response,
+    root_response,
+    schedule_response,
+    webhook_response,
+)
+
+from pinbridge_sdk import AsyncPinbridgeClient
+from pinbridge_sdk.models import (
+    APIKeyCreate,
+    APIKeyUpdate,
+    BillingCycle,
+    BoardCreateRequest,
+    CheckoutRequest,
+    LoginRequest,
+    PinCreate,
+    Plan,
+    ProfileUpdateRequest,
+    RegisterRequest,
+    ScheduleCreate,
+    WebhookCreate,
+    WebhookUpdate,
+)
+
+
+def _request_json(request: httpx.Request) -> dict:
+    if not request.content:
+        return {}
+    return json.loads(request.content.decode("utf-8"))
+
+
+async def test_async_resource_methods_end_to_end() -> None:
+    seen: list[tuple[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        method = request.method
+        path = request.url.path
+        seen.append((method, path))
+
+        if (method, path) == ("POST", "/v1/auth/register"):
+            return httpx.Response(201, json=auth_response())
+        if (method, path) == ("POST", "/v1/auth/login"):
+            return httpx.Response(200, json=auth_response())
+        if (method, path) == ("GET", "/v1/auth/me"):
+            return httpx.Response(200, json=me_response())
+        if (method, path) == ("GET", "/v1/auth/profile"):
+            return httpx.Response(200, json=profile_response())
+        if (method, path) == ("PUT", "/v1/auth/profile"):
+            payload = _request_json(request)
+            assert payload == {"workspace_name": "New Name"}
+            return httpx.Response(200, json=profile_response())
+
+        if (method, path) == ("POST", "/v1/api-keys"):
+            return httpx.Response(201, json=api_key_create_response())
+        if (method, path) == ("GET", "/v1/api-keys"):
+            return httpx.Response(200, json=[api_key_response()])
+        if (method, path) == ("PATCH", f"/v1/api-keys/{UUID3}"):
+            return httpx.Response(200, json=api_key_response())
+        if (method, path) == ("DELETE", f"/v1/api-keys/{UUID3}"):
+            return httpx.Response(204)
+
+        if (method, path) == ("GET", "/v1/pinterest/oauth/start"):
+            return httpx.Response(200, json={"authorization_url": "https://pinterest.example/auth"})
+        if (method, path) == ("GET", "/v1/pinterest/oauth/callback"):
+            return httpx.Response(
+                200, json={"status": "success", "message": "ok", "account_id": UUID4}
+            )
+        if (method, path) == ("GET", "/v1/pinterest/accounts"):
+            return httpx.Response(200, json=[pinterest_account_response()])
+        if (method, path) == ("DELETE", f"/v1/pinterest/accounts/{UUID4}"):
+            return httpx.Response(204)
+        if (method, path) == ("GET", "/v1/pinterest/boards"):
+            return httpx.Response(200, json=[board_response()])
+        if (method, path) == ("POST", "/v1/pinterest/boards"):
+            return httpx.Response(201, json=board_response())
+        if (method, path) == ("DELETE", "/v1/pinterest/boards/board-1"):
+            return httpx.Response(204)
+
+        if (method, path) == ("POST", "/v1/pins"):
+            return httpx.Response(201, json=pin_response())
+        if (method, path) == ("GET", "/v1/pins"):
+            return httpx.Response(200, json=[pin_response()])
+        if (method, path) == ("GET", f"/v1/pins/{UUID1}"):
+            return httpx.Response(200, json=pin_response())
+        if (method, path) == ("DELETE", f"/v1/pins/{UUID1}"):
+            return httpx.Response(204)
+        if (method, path) == ("GET", f"/v1/jobs/{UUID1}"):
+            return httpx.Response(200, json=job_status_response())
+
+        if (method, path) == ("POST", "/v1/schedules"):
+            return httpx.Response(201, json=schedule_response())
+        if (method, path) == ("GET", "/v1/schedules"):
+            return httpx.Response(200, json=[schedule_response()])
+        if (method, path) == ("GET", f"/v1/schedules/{UUID3}"):
+            return httpx.Response(200, json=schedule_response())
+        if (method, path) == ("POST", f"/v1/schedules/{UUID3}/cancel"):
+            return httpx.Response(200, json=schedule_response())
+
+        if (method, path) == ("POST", "/v1/webhooks"):
+            return httpx.Response(201, json=webhook_response())
+        if (method, path) == ("GET", "/v1/webhooks"):
+            return httpx.Response(200, json=[webhook_response()])
+        if (method, path) == ("GET", f"/v1/webhooks/{UUID3}"):
+            return httpx.Response(200, json=webhook_response())
+        if (method, path) == ("PATCH", f"/v1/webhooks/{UUID3}"):
+            return httpx.Response(200, json=webhook_response())
+        if (method, path) == ("DELETE", f"/v1/webhooks/{UUID3}"):
+            return httpx.Response(204)
+
+        if (method, path) == ("GET", "/v1/rate-meter"):
+            return httpx.Response(200, json=rate_meter_response())
+        if (method, path) == ("GET", "/v1/billing/pricing"):
+            return httpx.Response(200, json=pricing_catalog_response())
+        if (method, path) == ("POST", "/v1/billing/checkout"):
+            payload = _request_json(request)
+            assert payload["billing_cycle"] == "monthly"
+            return httpx.Response(200, json={"url": "https://checkout.stripe.test"})
+        if (method, path) == ("POST", "/v1/billing/portal"):
+            return httpx.Response(200, json={"url": "https://portal.stripe.test"})
+        if (method, path) == ("GET", "/v1/billing/status"):
+            return httpx.Response(200, json=billing_status_response())
+
+        if (method, path) == ("GET", "/"):
+            return httpx.Response(200, json=root_response())
+        if (method, path) == ("GET", "/healthz"):
+            return httpx.Response(200, json=health_response())
+        if (method, path) == ("POST", "/v1/stripe/webhook"):
+            return httpx.Response(200, json={"status": "success"})
+
+        raise AssertionError(f"Unexpected request: {method} {path}")
+
+    transport = httpx.MockTransport(handler)
+    async with AsyncPinbridgeClient(
+        base_url="https://api.pinbridge.test", transport=transport
+    ) as client:
+        await client.auth.register(RegisterRequest(email="dev@pinbridge.io", password="secret123"))
+        logged = await client.auth.login(
+            LoginRequest(email="dev@pinbridge.io", password="secret123")
+        )
+        client.set_bearer_token(logged.access_token)
+        await client.auth.me()
+        await client.auth.get_profile()
+        await client.auth.update_profile(ProfileUpdateRequest(workspace_name="New Name"))
+
+        await client.api_keys.create(APIKeyCreate(name="primary"))
+        await client.api_keys.list()
+        await client.api_keys.update(UUID3, APIKeyUpdate(name="renamed"))
+        await client.api_keys.revoke(UUID3)
+
+        await client.pinterest.start_oauth()
+        callback = await client.pinterest.oauth_callback(code="abc", state="state")
+        assert callback.status == "success"
+        await client.pinterest.list_accounts()
+        await client.pinterest.revoke_account(UUID4)
+        await client.pinterest.list_boards(UUID4)
+        await client.pinterest.create_board(
+            BoardCreateRequest(account_id=UUID4, name="SDK Board", description=None, privacy=None)
+        )
+        await client.pinterest.delete_board("board-1", account_id=UUID4)
+
+        await client.pins.create(
+            PinCreate(
+                account_id=UUID4,
+                board_id="123-board",
+                title="A Pin",
+                description="Pin description",
+                link_url="https://example.com",
+                image_url="https://example.com/image.jpg",
+                idempotency_key="idem-123",
+            )
+        )
+        await client.pins.list(limit=10, offset=2)
+        await client.pins.get(UUID1)
+        await client.pins.delete(UUID1)
+        await client.jobs.get(UUID1)
+
+        await client.schedules.create(
+            ScheduleCreate(
+                account_id=UUID4,
+                run_at=datetime.fromisoformat("2026-02-24T12:00:00+00:00"),
+                board_id="123-board",
+                title="Scheduled",
+                description="Scheduled",
+                link_url="https://example.com",
+                image_url="https://example.com/image.jpg",
+            )
+        )
+        await client.schedules.list()
+        await client.schedules.get(UUID3)
+        await client.schedules.cancel(UUID3)
+
+        await client.webhooks.create(
+            WebhookCreate(
+                url="https://example.com/hook", secret="0123456789012345", is_enabled=True
+            )
+        )
+        await client.webhooks.list()
+        await client.webhooks.get(UUID3)
+        await client.webhooks.update(UUID3, WebhookUpdate(is_enabled=False))
+        await client.webhooks.delete(UUID3)
+
+        await client.rate_meter.get(UUID4)
+        await client.billing.pricing()
+        await client.billing.checkout(
+            CheckoutRequest(plan=Plan.STARTER, billing_cycle=BillingCycle.MONTHLY)
+        )
+        await client.billing.portal()
+        await client.billing.status()
+
+        await client.system.root()
+        await client.system.health()
+        await client.system.stripe_webhook("{}", stripe_signature="sig")
+
+    assert ("POST", "/v1/webhooks") in seen
+    assert ("GET", "/v1/auth/me") in seen
+
+
+async def test_async_oauth_callback_redirect_and_empty_body_branches() -> None:
+    calls = {"count": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["count"] += 1
+        if calls["count"] == 1:
+            return httpx.Response(302, headers={"location": "https://app.pinbridge.test/callback"})
+        return httpx.Response(200, content=b"")
+
+    transport = httpx.MockTransport(handler)
+    async with AsyncPinbridgeClient(
+        base_url="https://api.pinbridge.test", transport=transport
+    ) as client:
+        redirect = await client.pinterest.oauth_callback(code="abc", state="state")
+        empty = await client.pinterest.oauth_callback(code="abc", state="state")
+
+    assert isinstance(redirect, httpx.Response)
+    assert redirect.is_redirect
+    assert isinstance(empty, httpx.Response)
+    assert empty.status_code == 200
+
+
+async def test_async_system_webhook_non_dict_payload_returns_empty_dict() -> None:
+    transport = httpx.MockTransport(lambda _: httpx.Response(200, json=[1, 2, 3]))
+    async with AsyncPinbridgeClient(
+        base_url="https://api.pinbridge.test", transport=transport
+    ) as client:
+        payload = await client.system.stripe_webhook("{}", stripe_signature="sig")
+    assert payload == {}
+
+
+async def test_async_list_expected_type_error_when_api_payload_is_not_list() -> None:
+    transport = httpx.MockTransport(lambda _: httpx.Response(200, json={"unexpected": True}))
+    async with AsyncPinbridgeClient(
+        base_url="https://api.pinbridge.test", transport=transport
+    ) as client:
+        with pytest.raises(TypeError, match="Expected a list"):
+            await client.pins.list()
