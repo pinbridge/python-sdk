@@ -248,23 +248,4 @@ pytest --cov=pinbridge_sdk --cov-config=.coveragerc --cov-report=term-missing --
 
 Coverage config file: `.coveragerc`
 
-## CI
-
-GitHub Actions CI runs on push to `main` and on pull requests.
-
-- Lint: `ruff check .` + `black --check .`
-- Test + coverage: `pytest --cov=pinbridge_sdk ...`
-- Build verification: `python -m build` + `twine check dist/*`
-
-Workflow file: `.github/workflows/ci.yml`
-
-## Publish to PyPI
-
-Release workflow file: `.github/workflows/publish.yml`
-
-Trigger options:
-
-- Push a version tag (for example: `v0.1.0`)
-- Manual `workflow_dispatch` with explicit version input
-
 Detailed release runbook: `RELEASING.md`
