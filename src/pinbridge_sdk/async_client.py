@@ -55,7 +55,7 @@ class AsyncPinbridgeClient:
         timeout: float = DEFAULT_TIMEOUT,
         headers: HeadersLike | None = None,
         follow_redirects: bool = False,
-        user_agent: str = "pinbridge-python-sdk/0.1.2",
+        user_agent: str = "pinbridge-python-sdk/0.1.3",
         http_client: httpx.AsyncClient | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
