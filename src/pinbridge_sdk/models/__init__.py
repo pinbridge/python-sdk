@@ -2,6 +2,7 @@
 
 from .api_keys import APIKeyCreate, APIKeyCreateResponse, APIKeyResponse, APIKeyUpdate
 from .auth import (
+    AuthOrganizationResponse,
     AuthResponse,
     AuthUserResponse,
     AuthWorkspaceResponse,
@@ -29,6 +30,7 @@ from .common import (
     Plan,
     ScheduleStatus,
     ValidationErrorItem,
+    WorkspaceEnvironment,
 )
 from .pins import JobStatusResponse, PinCreate, PinResponse
 from .pinterest import (
@@ -37,6 +39,14 @@ from .pinterest import (
     OAuthCallbackResponse,
     OAuthStartResponse,
     PinterestAccountResponse,
+)
+from .projects import (
+    CreateSandboxProjectRequest,
+    OrganizationResponse,
+    ProjectResponse,
+    ProjectsContextResponse,
+    ProjectSwitchResponse,
+    SwitchProjectRequest,
 )
 from .schedules import ScheduleCreate, ScheduleResponse
 from .system import HealthResponse, RateMeterAccount, RateMeterNode, RateMeterResponse, RootResponse
@@ -48,6 +58,7 @@ __all__ = [
     "APIKeyResponse",
     "APIKeyUpdate",
     "AuthResponse",
+    "AuthOrganizationResponse",
     "AuthUserResponse",
     "AuthWorkspaceResponse",
     "BillingCycle",
@@ -74,6 +85,9 @@ __all__ = [
     "PricingAmountResponse",
     "PricingCatalogResponse",
     "PricingPlanResponse",
+    "ProjectResponse",
+    "ProjectsContextResponse",
+    "ProjectSwitchResponse",
     "ProfileResponse",
     "ProfileUpdateRequest",
     "RateMeterAccount",
@@ -84,6 +98,10 @@ __all__ = [
     "ScheduleCreate",
     "ScheduleResponse",
     "ScheduleStatus",
+    "WorkspaceEnvironment",
+    "SwitchProjectRequest",
+    "CreateSandboxProjectRequest",
+    "OrganizationResponse",
     "ValidationErrorItem",
     "WebhookCreate",
     "WebhookDeliveryResponse",

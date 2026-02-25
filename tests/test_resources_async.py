@@ -21,6 +21,8 @@ from _payloads import (
     pinterest_account_response,
     pricing_catalog_response,
     profile_response,
+    project_switch_response,
+    projects_context_response,
     rate_meter_response,
     root_response,
     schedule_response,
@@ -40,6 +42,7 @@ from pinbridge_sdk.models import (
     ProfileUpdateRequest,
     RegisterRequest,
     ScheduleCreate,
+    SwitchProjectRequest,
     WebhookCreate,
     WebhookUpdate,
 )
@@ -71,6 +74,17 @@ async def test_async_resource_methods_end_to_end() -> None:
             payload = _request_json(request)
             assert payload == {"workspace_name": "New Name"}
             return httpx.Response(200, json=profile_response())
+
+        if (method, path) == ("GET", "/v1/projects"):
+            return httpx.Response(200, json=projects_context_response())
+        if (method, path) == ("POST", "/v1/projects/sandbox"):
+            payload = _request_json(request)
+            assert payload in ({}, {"name": "SDK Sandbox"})
+            return httpx.Response(201, json=projects_context_response())
+        if (method, path) == ("POST", "/v1/projects/switch"):
+            payload = _request_json(request)
+            assert payload["project_id"] == UUID4
+            return httpx.Response(200, json=project_switch_response())
 
         if (method, path) == ("POST", "/v1/api-keys"):
             return httpx.Response(201, json=api_key_create_response())
@@ -163,6 +177,11 @@ async def test_async_resource_methods_end_to_end() -> None:
         await client.auth.me()
         await client.auth.get_profile()
         await client.auth.update_profile(ProfileUpdateRequest(workspace_name="New Name"))
+        await client.projects.list()
+        await client.projects.create_sandbox({"name": "SDK Sandbox"})
+        switched = await client.projects.switch(SwitchProjectRequest(project_id=UUID4))
+        assert switched.active_project.environment.value == "sandbox"
+        client.set_bearer_token(switched.access_token)
 
         await client.api_keys.create(APIKeyCreate(name="primary"))
         await client.api_keys.list()

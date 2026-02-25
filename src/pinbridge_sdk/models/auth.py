@@ -6,7 +6,7 @@ from datetime import datetime
 from uuid import UUID
 
 from .base import PinbridgeModel
-from .common import Plan
+from .common import Plan, WorkspaceEnvironment
 
 
 class RegisterRequest(PinbridgeModel):
@@ -30,7 +30,13 @@ class AuthUserResponse(PinbridgeModel):
 class AuthWorkspaceResponse(PinbridgeModel):
     id: UUID
     name: str
+    environment: WorkspaceEnvironment
     plan: Plan
+
+
+class AuthOrganizationResponse(PinbridgeModel):
+    id: UUID
+    name: str
 
 
 class AuthResponse(PinbridgeModel):
@@ -38,11 +44,17 @@ class AuthResponse(PinbridgeModel):
     token_type: str = "bearer"
     expires_in: int
     user: AuthUserResponse
+    organization: AuthOrganizationResponse
+    active_project: AuthWorkspaceResponse
+    projects: list[AuthWorkspaceResponse]
     workspace: AuthWorkspaceResponse
 
 
 class MeResponse(PinbridgeModel):
     user: AuthUserResponse
+    organization: AuthOrganizationResponse
+    active_project: AuthWorkspaceResponse
+    projects: list[AuthWorkspaceResponse]
     workspace: AuthWorkspaceResponse
 
 

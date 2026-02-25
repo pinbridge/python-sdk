@@ -133,6 +133,23 @@ created = client.pinterest.create_board(
 )
 ```
 
+### Projects (`client.projects`)
+
+- `list()`
+- `create_sandbox(CreateSandboxProjectRequest | dict | None = None)`
+- `switch(SwitchProjectRequest | dict)`
+
+```python
+projects = client.projects.list()
+sandbox = next((p for p in projects.projects if p.environment.value == "sandbox"), None)
+if sandbox is None:
+    sandbox = next(
+        p for p in client.projects.create_sandbox().projects if p.environment.value == "sandbox"
+    )
+switched = client.projects.switch({"project_id": str(sandbox.id)})
+client.set_bearer_token(switched.access_token)
+```
+
 ### Pins and Jobs (`client.pins`, `client.jobs`)
 
 - `client.pins.create(PinCreate | dict)`

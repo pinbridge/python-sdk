@@ -10,6 +10,7 @@ from .billing import (
 )
 from .pins import AsyncJobsResource, AsyncPinsResource, JobsResource, PinsResource
 from .pinterest import AsyncPinterestResource, PinterestResource
+from .projects import AsyncProjectsResource, ProjectsResource
 from .schedules import AsyncSchedulesResource, SchedulesResource
 from .system import AsyncSystemResource, SystemResource
 from .webhooks import AsyncWebhooksResource, WebhooksResource
@@ -22,6 +23,7 @@ __all__ = [
     "AsyncJobsResource",
     "AsyncPinsResource",
     "AsyncPinterestResource",
+    "AsyncProjectsResource",
     "AsyncRateMeterResource",
     "AsyncSchedulesResource",
     "AsyncSystemResource",
@@ -31,6 +33,7 @@ __all__ = [
     "JobsResource",
     "PinsResource",
     "PinterestResource",
+    "ProjectsResource",
     "RateMeterResource",
     "SchedulesResource",
     "SystemResource",

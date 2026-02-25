@@ -28,6 +28,11 @@ class BillingCycle(str, Enum):
     ANNUAL = "annual"
 
 
+class WorkspaceEnvironment(str, Enum):
+    PRODUCTION = "production"
+    SANDBOX = "sandbox"
+
+
 class PinStatus(str, Enum):
     QUEUED = "queued"
     PUBLISHING = "publishing"

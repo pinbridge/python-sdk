@@ -8,18 +8,65 @@ TS = "2026-02-23T12:00:00Z"
 
 
 def auth_response() -> dict:
+    workspace = {
+        "id": UUID2,
+        "name": "SDK Workspace",
+        "environment": "production",
+        "plan": "starter",
+    }
     return {
         "access_token": "jwt-token",
         "token_type": "bearer",
         "expires_in": 3600,
         "user": {"id": UUID1, "email": "dev@pinbridge.io", "full_name": None, "created_at": TS},
-        "workspace": {"id": UUID2, "name": "SDK Workspace", "plan": "starter"},
+        "organization": {"id": UUID3, "name": "SDK Org"},
+        "active_project": workspace,
+        "projects": [workspace],
+        "workspace": workspace,
     }
 
 
 def me_response() -> dict:
     base = auth_response()
-    return {"user": base["user"], "workspace": base["workspace"]}
+    return {
+        "user": base["user"],
+        "organization": base["organization"],
+        "active_project": base["active_project"],
+        "projects": base["projects"],
+        "workspace": base["workspace"],
+    }
+
+
+def projects_context_response() -> dict:
+    workspace = {
+        "id": UUID2,
+        "name": "SDK Workspace",
+        "environment": "production",
+        "plan": "starter",
+        "created_at": TS,
+    }
+    sandbox = {
+        "id": UUID4,
+        "name": "SDK Sandbox",
+        "environment": "sandbox",
+        "plan": "free",
+        "created_at": TS,
+    }
+    return {
+        "organization": {"id": UUID3, "name": "SDK Org"},
+        "active_project": workspace,
+        "projects": [workspace, sandbox],
+    }
+
+
+def project_switch_response() -> dict:
+    base = projects_context_response()
+    sandbox = next(project for project in base["projects"] if project["environment"] == "sandbox")
+    base["active_project"] = sandbox
+    base["access_token"] = "jwt-switched-token"
+    base["token_type"] = "bearer"
+    base["expires_in"] = 3600
+    return base
 
 
 def profile_response() -> dict:
