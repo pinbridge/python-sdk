@@ -208,18 +208,15 @@ def pricing_catalog_response() -> dict:
                 "monthly_overage": None,
                 "quota_calls_monthly": 1000,
                 "pinterest_accounts_limit": 2,
-                "bulk_publishing_enabled": False,
-                "enhanced_logs_enabled": False,
+                "overage_billing_threshold_pins": 100,
                 "monthly_price": {
                     "billing_cycle": "monthly",
-                    "price_id": "price_m",
                     "unit_amount": 1900,
                     "currency": "usd",
                     "amount_display": "$19",
                 },
                 "annual_price": {
                     "billing_cycle": "annual",
-                    "price_id": "price_a",
                     "unit_amount": 19000,
                     "currency": "usd",
                     "amount_display": "$190",
@@ -235,12 +232,13 @@ def billing_status_response() -> dict:
         "billing_status": "active",
         "current_period_start": TS,
         "current_period_end": TS,
+        "subscription_cancel_at": None,
         "quota_calls_monthly": 1000,
         "calls_used": 10,
+        "overage_pins_used": 0,
         "quota_reset_at": TS,
         "pinterest_accounts_limit": 2,
-        "bulk_publishing_enabled": False,
-        "enhanced_logs_enabled": False,
+        "overage_billing_threshold_pins": 100,
     }
 
 

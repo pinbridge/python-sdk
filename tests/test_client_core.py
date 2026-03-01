@@ -3,6 +3,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
+from pinbridge_sdk import __version__
 from pinbridge_sdk._client_base import ClientCore
 from pinbridge_sdk.client import PinbridgeClient
 from pinbridge_sdk.resources.base import SyncAPIResource
@@ -92,3 +93,19 @@ def test_with_options_clones_auth_headers_and_custom_resources() -> None:
         assert request.headers["authorization"] == "Bearer t1"
         assert request.headers["x-root"] == "yes"
         assert request.headers["x-clone"] == "1"
+
+
+def test_default_user_agent_tracks_package_version() -> None:
+    seen: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["user-agent"] = request.headers["user-agent"]
+        return httpx.Response(
+            200, json={"status": "ok", "version": "0.1.0", "environment": "test", "database": "ok"}
+        )
+
+    transport = httpx.MockTransport(handler)
+    with PinbridgeClient(base_url="https://api.pinbridge.test", transport=transport) as client:
+        client.system.health()
+
+    assert seen["user-agent"] == f"pinbridge-python-sdk/{__version__}"

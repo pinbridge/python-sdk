@@ -40,6 +40,10 @@ class ProjectsResource(SyncAPIResource):
         response = self._request("POST", "/v1/projects/switch", json=payload)
         return self._model(ProjectSwitchResponse, response)
 
+    def reset_sandbox(self) -> ProjectsContextResponse:
+        response = self._request("POST", "/v1/projects/sandbox/reset")
+        return self._model(ProjectsContextResponse, response)
+
 
 class AsyncProjectsResource(AsyncAPIResource):
     async def list(self) -> ProjectsContextResponse:
@@ -66,3 +70,7 @@ class AsyncProjectsResource(AsyncAPIResource):
         )
         response = await self._request("POST", "/v1/projects/switch", json=payload)
         return self._model(ProjectSwitchResponse, response)
+
+    async def reset_sandbox(self) -> ProjectsContextResponse:
+        response = await self._request("POST", "/v1/projects/sandbox/reset")
+        return self._model(ProjectsContextResponse, response)

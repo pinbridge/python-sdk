@@ -26,17 +26,17 @@ class BillingStatusResponse(PinbridgeModel):
     billing_status: BillingStatus
     current_period_start: datetime | None = None
     current_period_end: datetime | None = None
+    subscription_cancel_at: datetime | None = None
     quota_calls_monthly: int
     calls_used: int
+    overage_pins_used: int
     quota_reset_at: datetime | None = None
     pinterest_accounts_limit: int
-    bulk_publishing_enabled: bool
-    enhanced_logs_enabled: bool
+    overage_billing_threshold_pins: int | None = None
 
 
 class PricingAmountResponse(PinbridgeModel):
     billing_cycle: BillingCycle
-    price_id: str | None = None
     unit_amount: int
     currency: str
     amount_display: str
@@ -51,8 +51,7 @@ class PricingPlanResponse(PinbridgeModel):
     monthly_overage: str | None = None
     quota_calls_monthly: int
     pinterest_accounts_limit: int
-    bulk_publishing_enabled: bool
-    enhanced_logs_enabled: bool
+    overage_billing_threshold_pins: int | None = None
     monthly_price: PricingAmountResponse
     annual_price: PricingAmountResponse
 

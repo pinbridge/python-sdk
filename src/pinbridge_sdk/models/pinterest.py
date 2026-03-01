@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
+
+from pydantic import HttpUrl, StringConstraints
 
 from .base import PinbridgeModel
 
+BoardName = Annotated[str, StringConstraints(min_length=1, max_length=180)]
+
 
 class OAuthStartResponse(PinbridgeModel):
-    authorization_url: str
+    authorization_url: HttpUrl
 
 
 class OAuthCallbackResponse(PinbridgeModel):
@@ -39,6 +44,6 @@ class BoardResponse(PinbridgeModel):
 
 class BoardCreateRequest(PinbridgeModel):
     account_id: UUID
-    name: str
+    name: BoardName
     description: str | None = None
     privacy: str | None = None

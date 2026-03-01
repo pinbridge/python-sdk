@@ -41,3 +41,25 @@ jobs:
 
       - name: Validate package metadata
         run: twine check dist/*
+
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install documentation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[docs]
+
+      - name: Verify generated reference pages
+        run: python scripts/generate_reference.py --check
+
+      - name: Build documentation
+        run: mkdocs build --strict

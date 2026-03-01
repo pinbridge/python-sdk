@@ -3,20 +3,26 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
+
+from pydantic import HttpUrl, StringConstraints
 
 from .base import PinbridgeModel
 from .common import PinStatus
+
+PinTitle = Annotated[str, StringConstraints(max_length=500)]
+IdempotencyKey = Annotated[str, StringConstraints(max_length=255)]
 
 
 class PinCreate(PinbridgeModel):
     account_id: UUID
     board_id: str
-    title: str
+    title: PinTitle
     description: str | None = None
-    link_url: str | None = None
-    image_url: str
-    idempotency_key: str
+    link_url: HttpUrl | None = None
+    image_url: HttpUrl
+    idempotency_key: IdempotencyKey
 
 
 class PinResponse(PinbridgeModel):

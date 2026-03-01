@@ -91,6 +91,9 @@ def test_sync_resource_methods_end_to_end() -> None:
             assert payload in ({}, {"name": "SDK Sandbox"})
             return httpx.Response(201, json=projects_context_response())
 
+        if (method, path) == ("POST", "/v1/projects/sandbox/reset"):
+            return httpx.Response(200, json=projects_context_response())
+
         if (method, path) == ("POST", "/v1/projects/switch"):
             payload = _request_json(request)
             assert payload["project_id"] == UUID4
@@ -243,6 +246,7 @@ def test_sync_resource_methods_end_to_end() -> None:
         )
         assert len(client.projects.list().projects) == 2
         assert len(client.projects.create_sandbox({"name": "SDK Sandbox"}).projects) == 2
+        assert len(client.projects.reset_sandbox().projects) == 2
         switched = client.projects.switch(SwitchProjectRequest(project_id=UUID4))
         assert switched.active_project.environment.value == "sandbox"
         client.set_bearer_token(switched.access_token)

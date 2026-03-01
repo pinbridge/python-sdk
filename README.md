@@ -2,6 +2,10 @@
 
 Official Python SDK for the PinBridge API.
 
+Documentation in this repository is built with MkDocs. After installing docs dependencies,
+run `python scripts/generate_reference.py` and `mkdocs serve` from the `python-sdk/`
+directory for a local docs site.
+
 ## Installation
 
 ```bash
@@ -137,6 +141,7 @@ created = client.pinterest.create_board(
 
 - `list()`
 - `create_sandbox(CreateSandboxProjectRequest | dict | None = None)`
+- `reset_sandbox()`
 - `switch(SwitchProjectRequest | dict)`
 
 ```python
@@ -146,6 +151,7 @@ if sandbox is None:
     sandbox = next(
         p for p in client.projects.create_sandbox().projects if p.environment.value == "sandbox"
     )
+client.projects.reset_sandbox()
 switched = client.projects.switch({"project_id": str(sandbox.id)})
 client.set_bearer_token(switched.access_token)
 ```

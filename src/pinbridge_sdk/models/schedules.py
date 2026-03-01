@@ -3,21 +3,25 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID
+
+from pydantic import HttpUrl, StringConstraints
 
 from .base import PinbridgeModel
 from .common import ScheduleStatus
+
+ScheduleTitle = Annotated[str, StringConstraints(max_length=500)]
 
 
 class ScheduleCreate(PinbridgeModel):
     account_id: UUID
     run_at: datetime
     board_id: str
-    title: str
+    title: ScheduleTitle
     description: str | None = None
-    link_url: str | None = None
-    image_url: str
+    link_url: HttpUrl | None = None
+    image_url: HttpUrl
 
 
 class ScheduleResponse(PinbridgeModel):

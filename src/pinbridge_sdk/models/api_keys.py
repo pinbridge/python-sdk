@@ -3,17 +3,22 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
+
+from pydantic import StringConstraints
 
 from .base import PinbridgeModel
 
+APIKeyName = Annotated[str, StringConstraints(max_length=255)]
+
 
 class APIKeyCreate(PinbridgeModel):
-    name: str
+    name: APIKeyName
 
 
 class APIKeyUpdate(PinbridgeModel):
-    name: str
+    name: APIKeyName
 
 
 class APIKeyResponse(PinbridgeModel):

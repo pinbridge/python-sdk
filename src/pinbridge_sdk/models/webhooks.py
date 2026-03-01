@@ -3,24 +3,26 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, HttpUrl, StringConstraints
 
 from .base import PinbridgeModel
 
+WebhookSecret = Annotated[str, StringConstraints(min_length=16, max_length=255)]
+
 
 class WebhookCreate(PinbridgeModel):
-    url: str
-    secret: str
+    url: HttpUrl
+    secret: WebhookSecret
     events: list[str] = Field(default_factory=lambda: ["pin.published", "pin.failed"])
     is_enabled: bool = True
 
 
 class WebhookUpdate(PinbridgeModel):
-    url: str | None = None
-    secret: str | None = None
+    url: HttpUrl | None = None
+    secret: WebhookSecret | None = None
     events: list[str] | None = None
     is_enabled: bool | None = None
 

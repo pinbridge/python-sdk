@@ -81,6 +81,8 @@ async def test_async_resource_methods_end_to_end() -> None:
             payload = _request_json(request)
             assert payload in ({}, {"name": "SDK Sandbox"})
             return httpx.Response(201, json=projects_context_response())
+        if (method, path) == ("POST", "/v1/projects/sandbox/reset"):
+            return httpx.Response(200, json=projects_context_response())
         if (method, path) == ("POST", "/v1/projects/switch"):
             payload = _request_json(request)
             assert payload["project_id"] == UUID4
@@ -179,6 +181,7 @@ async def test_async_resource_methods_end_to_end() -> None:
         await client.auth.update_profile(ProfileUpdateRequest(workspace_name="New Name"))
         await client.projects.list()
         await client.projects.create_sandbox({"name": "SDK Sandbox"})
+        await client.projects.reset_sandbox()
         switched = await client.projects.switch(SwitchProjectRequest(project_id=UUID4))
         assert switched.active_project.environment.value == "sandbox"
         client.set_bearer_token(switched.access_token)

@@ -56,4 +56,4 @@ class ValidationErrorItem(PinbridgeModel):
 
 
 class HTTPValidationError(PinbridgeModel):
-    detail: list[ValidationErrorItem] | None = None
+    detail: list[ValidationErrorItem]

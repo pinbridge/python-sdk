@@ -1,0 +1,49 @@
+site_name: PinBridge Python SDK
+site_description: Python client library for the PinBridge API
+site_url: https://docs.pinbridge.io/sdk/python
+repo_url: https://github.com/pinbridge/python-sdk
+repo_name: pinbridge/python-sdk
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            members_order: source
+            separate_signature: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_source: false
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+
+nav:
+  - Home: index.md
+  - Guides:
+      - Authentication: guides/authentication.md
+      - Projects: guides/projects.md
+      - Publishing: guides/publishing.md
+      - Webhooks: guides/webhooks.md
+  - Reference:
+      - Overview: reference/index.md
+      - Clients: reference/client.md
+      - Errors: reference/errors.md
+      - Resources: reference/resources/index.md
+      - Models: reference/models/index.md
+  - Development: development.md

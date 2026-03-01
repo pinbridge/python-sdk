@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
+
+from pydantic import StringConstraints
 
 from .base import PinbridgeModel
 from .common import Plan, WorkspaceEnvironment
+
+ProjectName = Annotated[str, StringConstraints(max_length=255)]
 
 
 class OrganizationResponse(PinbridgeModel):
@@ -29,7 +34,7 @@ class ProjectsContextResponse(PinbridgeModel):
 
 
 class CreateSandboxProjectRequest(PinbridgeModel):
-    name: str | None = None
+    name: ProjectName | None = None
 
 
 class SwitchProjectRequest(PinbridgeModel):

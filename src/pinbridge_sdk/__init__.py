@@ -1,7 +1,6 @@
 """PinBridge Python SDK."""
 
-__version__ = "0.1.5"
-
+from ._version import __version__
 from .async_client import AsyncPinbridgeClient
 from .client import PinbridgeClient
 from .errors import (
