@@ -103,6 +103,13 @@ async def test_async_resource_methods_end_to_end() -> None:
             assert "multipart/form-data" in request.headers["content-type"]
             assert b"asset-binary" in request.content
             return httpx.Response(201, json=asset_response())
+        if (method, path) == ("POST", "/v1/assets/videos"):
+            assert "multipart/form-data" in request.headers["content-type"]
+            assert b"video-binary" in request.content
+            payload = asset_response()
+            payload["asset_type"] = "video"
+            payload["content_type"] = "video/mp4"
+            return httpx.Response(201, json=payload)
         if (method, path) == ("GET", f"/v1/assets/{UUID3}"):
             return httpx.Response(200, json=asset_response())
 
@@ -205,6 +212,12 @@ async def test_async_resource_methods_end_to_end() -> None:
             content_type="image/png",
         )
         assert asset.asset_type == AssetType.IMAGE
+        video_asset = await client.assets.upload_video(
+            b"video-binary",
+            filename="pin.mp4",
+            content_type="video/mp4",
+        )
+        assert video_asset.asset_type == AssetType.VIDEO
         assert (await client.assets.get(UUID3)).id
 
         await client.pinterest.start_oauth()
@@ -272,6 +285,7 @@ async def test_async_resource_methods_end_to_end() -> None:
         await client.system.stripe_webhook("{}", stripe_signature="sig")
 
     assert ("POST", "/v1/webhooks") in seen
+    assert ("POST", "/v1/assets/videos") in seen
     assert ("GET", "/v1/auth/me") in seen
 
 

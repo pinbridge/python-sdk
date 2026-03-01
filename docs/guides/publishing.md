@@ -1,7 +1,7 @@
 # Publishing
 
 Pin publishing in the SDK is split between immediate publishing with `pins` and deferred
-publishing with `schedules`. When your source image is local, upload it first and then
+publishing with `schedules`. When your source media is local, upload it first and then
 reference the returned `asset_id`.
 
 ## Publish A Pin Immediately
@@ -26,6 +26,27 @@ pin = client.pins.create(
     )
 )
 print(pin.status.value)
+```
+
+## Publish A Video Pin
+
+```python
+video_asset = client.assets.upload_video(
+    "./pin-video.mp4",
+    content_type="video/mp4",
+)
+
+video_pin = client.pins.create(
+    PinCreate(
+        account_id="44444444-4444-4444-4444-444444444444",
+        board_id="123-board",
+        title="Video launch",
+        description="Published through the Python SDK",
+        asset_id=video_asset.id,
+        idempotency_key="pinbridge-video-001",
+    )
+)
+print(video_pin.media_type.value)
 ```
 
 ## Track Job Status
@@ -67,5 +88,7 @@ client.schedules.cancel(schedule.id)
 
 - Always provide a stable `idempotency_key` for immediate publishing
 - Use timezone-aware datetimes for `run_at`
-- Use `assets.upload_image()` for local files and `image_url` for already hosted media
+- Use `assets.upload_image()` or `assets.upload_video()` for local files
+- Keep `image_url` for already hosted images
+- Use uploaded `asset_id` values for video publishes and schedules
 - Poll `jobs.get()` or fetch the saved pin/schedule record instead of assuming success immediately

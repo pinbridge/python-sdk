@@ -28,6 +28,7 @@ mkdocs serve
 - `PinbridgeClient` and `AsyncPinbridgeClient` for sync and async use cases
 - Typed models under `pinbridge_sdk.models`
 - Resource groups for assets, auth, projects, Pinterest, pins, schedules, webhooks, billing, and more
+- Local image and video uploads through the assets resource before pin publishing
 - Consistent error mapping through `pinbridge_sdk.errors`
 
 ## Start Here

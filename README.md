@@ -1,6 +1,6 @@
 # PinBridge Python SDK
 
-Official Python SDK for the PinBridge API, including multipart image asset upload support for local publishing workflows.
+Official Python SDK for the PinBridge API, including multipart image and video asset upload support for local publishing workflows.
 
 Documentation in this repository is built with MkDocs. After installing docs dependencies,
 run `python scripts/generate_reference.py` and `mkdocs serve` from the `python-sdk/`
@@ -159,6 +159,7 @@ client.set_bearer_token(switched.access_token)
 ### Pins and Jobs (`client.pins`, `client.jobs`)
 
 - `client.assets.upload_image(file, filename=..., content_type=...)`
+- `client.assets.upload_video(file, filename=..., content_type=...)`
 - `client.assets.get(asset_id)`
 - `client.pins.create(PinCreate | dict)`
 - `client.pins.get(pin_id)`
@@ -188,6 +189,24 @@ status = client.jobs.get(pin.id)
 print(status.status)
 ```
 
+```python
+video_asset = client.assets.upload_video(
+    "./pin-video.mp4",
+    content_type="video/mp4",
+)
+
+video_pin = client.pins.create(
+    PinCreate(
+        account_id="...",
+        board_id="...",
+        title="Video launch",
+        asset_id=video_asset.id,
+        idempotency_key="video-idempotency-key",
+    )
+)
+print(video_pin.media_type.value, video_pin.media_url)
+```
+
 ### Schedules (`client.schedules`)
 
 - `create(ScheduleCreate | dict)`
@@ -195,7 +214,7 @@ print(status.status)
 - `list(limit=50, offset=0)`
 - `cancel(schedule_id)`
 
-Pins and schedules accept either a public `image_url` or an uploaded `asset_id`.
+Pins and schedules accept either a public `image_url` or an uploaded `asset_id`. Video publishes and schedules should use uploaded assets.
 
 ### Webhooks (`client.webhooks`)
 

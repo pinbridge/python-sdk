@@ -40,6 +40,11 @@ class PinStatus(str, Enum):
     FAILED = "failed"
 
 
+class PinMediaType(str, Enum):
+    IMAGE = "image"
+    VIDEO = "video"
+
+
 class ScheduleStatus(str, Enum):
     SCHEDULED = "scheduled"
     QUEUED = "queued"

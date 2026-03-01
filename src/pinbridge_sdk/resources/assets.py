@@ -36,8 +36,9 @@ def _normalize_upload(
 
 
 class AssetsResource(SyncAPIResource):
-    def upload_image(
+    def _upload(
         self,
+        path: str,
         file: UploadableFile,
         *,
         filename: str | None = None,
@@ -50,10 +51,38 @@ class AssetsResource(SyncAPIResource):
         )
         response = self._request(
             "POST",
-            "/v1/assets/images",
+            path,
             files={"file": (resolved_filename, body, resolved_content_type)},
         )
         return self._model(AssetResponse, response)
+
+    def upload_image(
+        self,
+        file: UploadableFile,
+        *,
+        filename: str | None = None,
+        content_type: str | None = None,
+    ) -> AssetResponse:
+        return self._upload(
+            "/v1/assets/images",
+            file,
+            filename=filename,
+            content_type=content_type,
+        )
+
+    def upload_video(
+        self,
+        file: UploadableFile,
+        *,
+        filename: str | None = None,
+        content_type: str | None = None,
+    ) -> AssetResponse:
+        return self._upload(
+            "/v1/assets/videos",
+            file,
+            filename=filename,
+            content_type=content_type,
+        )
 
     def get(self, asset_id: UUID | str) -> AssetResponse:
         response = self._request(
@@ -65,8 +94,9 @@ class AssetsResource(SyncAPIResource):
 
 
 class AsyncAssetsResource(AsyncAPIResource):
-    async def upload_image(
+    async def _upload(
         self,
+        path: str,
         file: UploadableFile,
         *,
         filename: str | None = None,
@@ -79,10 +109,38 @@ class AsyncAssetsResource(AsyncAPIResource):
         )
         response = await self._request(
             "POST",
-            "/v1/assets/images",
+            path,
             files={"file": (resolved_filename, body, resolved_content_type)},
         )
         return self._model(AssetResponse, response)
+
+    async def upload_image(
+        self,
+        file: UploadableFile,
+        *,
+        filename: str | None = None,
+        content_type: str | None = None,
+    ) -> AssetResponse:
+        return await self._upload(
+            "/v1/assets/images",
+            file,
+            filename=filename,
+            content_type=content_type,
+        )
+
+    async def upload_video(
+        self,
+        file: UploadableFile,
+        *,
+        filename: str | None = None,
+        content_type: str | None = None,
+    ) -> AssetResponse:
+        return await self._upload(
+            "/v1/assets/videos",
+            file,
+            filename=filename,
+            content_type=content_type,
+        )
 
     async def get(self, asset_id: UUID | str) -> AssetResponse:
         response = await self._request(

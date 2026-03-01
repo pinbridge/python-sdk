@@ -9,7 +9,7 @@ from uuid import UUID
 from pydantic import HttpUrl, StringConstraints, model_validator
 
 from .base import PinbridgeModel
-from .common import PinStatus
+from .common import PinMediaType, PinStatus
 
 PinTitle = Annotated[str, StringConstraints(max_length=500)]
 IdempotencyKey = Annotated[str, StringConstraints(max_length=255)]
@@ -39,9 +39,11 @@ class PinResponse(PinbridgeModel):
     workspace_id: UUID
     pinterest_account_id: UUID
     status: PinStatus
+    media_type: PinMediaType
     title: str
     description: str | None = None
     link_url: str | None = None
+    media_url: str
     image_url: str
     asset_id: UUID | None = None
     board_id: str

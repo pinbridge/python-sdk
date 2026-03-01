@@ -114,6 +114,14 @@ def test_sync_resource_methods_end_to_end() -> None:
             assert b"asset-binary" in request.content
             return httpx.Response(201, json=asset_response())
 
+        if (method, path) == ("POST", "/v1/assets/videos"):
+            assert "multipart/form-data" in request.headers["content-type"]
+            assert b"video-binary" in request.content
+            payload = asset_response()
+            payload["asset_type"] = "video"
+            payload["content_type"] = "video/mp4"
+            return httpx.Response(201, json=payload)
+
         if (method, path) == ("GET", f"/v1/assets/{UUID3}"):
             return httpx.Response(200, json=asset_response())
 
@@ -272,6 +280,12 @@ def test_sync_resource_methods_end_to_end() -> None:
             content_type="image/png",
         )
         assert asset.asset_type == AssetType.IMAGE
+        video_asset = client.assets.upload_video(
+            b"video-binary",
+            filename="pin.mp4",
+            content_type="video/mp4",
+        )
+        assert video_asset.asset_type == AssetType.VIDEO
         assert client.assets.get(UUID3).id
 
         assert client.pinterest.start_oauth().authorization_url
@@ -349,6 +363,7 @@ def test_sync_resource_methods_end_to_end() -> None:
 
     assert ("POST", "/v1/pins") in seen
     assert ("POST", "/v1/assets/images") in seen
+    assert ("POST", "/v1/assets/videos") in seen
     assert ("GET", "/v1/billing/pricing") in seen
 
 
