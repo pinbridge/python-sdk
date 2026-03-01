@@ -27,6 +27,8 @@ from .common import (
     BillingCycle,
     BillingStatus,
     HTTPValidationError,
+    ImportJobStatus,
+    ImportSourceType,
     PinMediaType,
     PinStatus,
     Plan,
@@ -34,7 +36,7 @@ from .common import (
     ValidationErrorItem,
     WorkspaceEnvironment,
 )
-from .pins import JobStatusResponse, PinCreate, PinResponse
+from .pins import BulkPinImportRowResult, ImportJobResponse, JobStatusResponse, PinCreate, PinResponse
 from .pinterest import (
     BoardCreateRequest,
     BoardResponse,
@@ -74,6 +76,9 @@ __all__ = [
     "CheckoutResponse",
     "HealthResponse",
     "HTTPValidationError",
+    "ImportJobResponse",
+    "ImportJobStatus",
+    "ImportSourceType",
     "JobStatusResponse",
     "LoginRequest",
     "MeResponse",
@@ -83,6 +88,7 @@ __all__ = [
     "PinCreate",
     "PinResponse",
     "PinStatus",
+    "BulkPinImportRowResult",
     "PinbridgeModel",
     "PinterestAccountResponse",
     "Plan",

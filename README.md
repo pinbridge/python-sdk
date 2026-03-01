@@ -162,6 +162,10 @@ client.set_bearer_token(switched.access_token)
 - `client.assets.upload_video(file, filename=..., content_type=...)`
 - `client.assets.get(asset_id)`
 - `client.pins.create(PinCreate | dict)`
+- `client.pins.import_json(list[PinCreate | dict])`
+- `client.pins.import_csv(file, filename=..., content_type=...)`
+- `client.pins.get_import(job_id)`
+- `client.pins.list_imports(limit=50, offset=0)`
 - `client.pins.get(pin_id)`
 - `client.pins.list(limit=50, offset=0)`
 - `client.pins.delete(pin_id)`
@@ -205,6 +209,29 @@ video_pin = client.pins.create(
     )
 )
 print(video_pin.media_type.value, video_pin.media_url)
+```
+
+```python
+import_job = client.pins.import_json(
+    [
+        PinCreate(
+            account_id="...",
+            board_id="...",
+            title="Bulk one",
+            image_url="https://example.com/bulk-1.jpg",
+            idempotency_key="bulk-json-1",
+        ),
+        {
+            "account_id": "...",
+            "board_id": "...",
+            "title": "Bulk two",
+            "image_url": "https://example.com/bulk-2.jpg",
+            "idempotency_key": "bulk-json-2",
+        },
+    ]
+)
+print(import_job.status.value)
+print(client.pins.get_import(import_job.id).processed_rows)
 ```
 
 ### Schedules (`client.schedules`)

@@ -58,6 +58,40 @@ job = client.jobs.get(pin.id)
 print(job.status.value)
 ```
 
+## Bulk Import Pins
+
+Use `pins.import_json()` when you already have a list of pin payloads and `pins.import_csv()`
+when your workflow starts from a CSV file. Both methods return an import job that can be polled.
+
+```python
+from pinbridge_sdk.models import PinCreate
+
+import_job = client.pins.import_json(
+    [
+        PinCreate(
+            account_id="44444444-4444-4444-4444-444444444444",
+            board_id="123-board",
+            title="Bulk pin one",
+            image_url="https://example.com/bulk-1.jpg",
+            idempotency_key="bulk-demo-001",
+        ),
+        {
+            "account_id": "44444444-4444-4444-4444-444444444444",
+            "board_id": "123-board",
+            "title": "Bulk pin two",
+            "image_url": "https://example.com/bulk-2.jpg",
+            "idempotency_key": "bulk-demo-002",
+        },
+    ]
+)
+
+csv_job = client.pins.import_csv("./pins.csv")
+
+latest = client.pins.get_import(import_job.id)
+for row in latest.results:
+    print(row.row_number, row.status, row.error_message)
+```
+
 ## Schedule A Pin
 
 ```python

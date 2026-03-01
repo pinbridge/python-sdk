@@ -8,7 +8,7 @@ from typing import Any
 import httpx
 
 from ._client_base import ClientCore
-from ._types import HeadersLike, JsonDict, PathValue, RequestData, RequestFiles
+from ._types import HeadersLike, PathValue, RequestData, RequestFiles, RequestJson
 from ._version import __version__
 from .errors import map_api_error
 from .resources import (
@@ -114,7 +114,7 @@ class AsyncPinbridgeClient:
         *,
         path_params: Mapping[str, PathValue] | None = None,
         params: Mapping[str, Any] | None = None,
-        json: JsonDict | None = None,
+        json: RequestJson | None = None,
         data: RequestData | None = None,
         files: RequestFiles | None = None,
         headers: HeadersLike | None = None,

@@ -164,6 +164,44 @@ def job_status_response() -> dict:
     }
 
 
+def import_job_response() -> dict:
+    return {
+        "id": UUID3,
+        "workspace_id": UUID2,
+        "source_type": "json",
+        "status": "completed_with_errors",
+        "source_filename": None,
+        "total_rows": 2,
+        "processed_rows": 2,
+        "created_rows": 1,
+        "existing_rows": 0,
+        "failed_rows": 1,
+        "results": [
+            {
+                "row_number": 1,
+                "status": "created",
+                "pin_id": UUID1,
+                "idempotency_key": "bulk-1",
+                "error_code": None,
+                "error_message": None,
+            },
+            {
+                "row_number": 2,
+                "status": "failed",
+                "pin_id": None,
+                "idempotency_key": "bulk-2",
+                "error_code": "validation_error",
+                "error_message": "board_id: Field required",
+            },
+        ],
+        "error_message": None,
+        "started_at": TS,
+        "completed_at": TS,
+        "created_at": TS,
+        "updated_at": TS,
+    }
+
+
 def schedule_response() -> dict:
     return {
         "id": UUID3,

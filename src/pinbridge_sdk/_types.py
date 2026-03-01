@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from typing import Any
 from uuid import UUID
 
-JsonDict = dict[str, Any]
+RequestJson = Mapping[str, Any] | list[Any]
 HeadersLike = Mapping[str, str]
 PathValue = str | int | UUID
 RequestFiles = Mapping[str, Any]

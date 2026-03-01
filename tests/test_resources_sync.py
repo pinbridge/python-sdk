@@ -16,6 +16,7 @@ from _payloads import (
     billing_status_response,
     board_response,
     health_response,
+    import_job_response,
     job_status_response,
     me_response,
     pin_response,
@@ -167,6 +168,26 @@ def test_sync_resource_methods_end_to_end() -> None:
             assert payload["idempotency_key"] == "idem-123"
             return httpx.Response(201, json=pin_response())
 
+        if (method, path) == ("POST", "/v1/pins/imports/json"):
+            payload = _request_json(request)
+            assert len(payload) == 2
+            assert payload[0]["idempotency_key"] == "bulk-json-1"
+            return httpx.Response(202, json=import_job_response())
+
+        if (method, path) == ("POST", "/v1/pins/imports/csv"):
+            assert "multipart/form-data" in request.headers["content-type"]
+            assert b"account_id,board_id,title" in request.content
+            payload = import_job_response()
+            payload["source_type"] = "csv"
+            payload["source_filename"] = "pins.csv"
+            return httpx.Response(202, json=payload)
+
+        if (method, path) == ("GET", "/v1/pins/imports"):
+            return httpx.Response(200, json=[import_job_response()])
+
+        if (method, path) == ("GET", f"/v1/pins/imports/{UUID3}"):
+            return httpx.Response(200, json=import_job_response())
+
         if (method, path) == ("GET", "/v1/pins"):
             assert request.url.params["limit"] == "10"
             assert request.url.params["offset"] == "2"
@@ -316,6 +337,35 @@ def test_sync_resource_methods_end_to_end() -> None:
             )
         )
         assert created_pin.title == "A Pin"
+        import_job = client.pins.import_json(
+            [
+                PinCreate(
+                    account_id=UUID4,
+                    board_id="123-board",
+                    title="Bulk A",
+                    image_url="https://example.com/bulk-a.jpg",
+                    idempotency_key="bulk-json-1",
+                ),
+                {
+                    "account_id": UUID4,
+                    "board_id": "123-board",
+                    "title": "Bulk B",
+                    "image_url": "https://example.com/bulk-b.jpg",
+                    "idempotency_key": "bulk-json-2",
+                },
+            ]
+        )
+        assert import_job.failed_rows == 1
+        csv_job = client.pins.import_csv(
+            (
+                b"account_id,board_id,title,image_url,idempotency_key\n"
+                b"1,board,Title,https://example.com/csv.jpg,csv-1\n"
+            ),
+            filename="pins.csv",
+        )
+        assert csv_job.source_filename == "pins.csv"
+        assert client.pins.get_import(UUID3).id
+        assert len(client.pins.list_imports()) == 1
         assert len(client.pins.list(limit=10, offset=2)) == 1
         assert client.pins.get(UUID1).id
         client.pins.delete(UUID1)

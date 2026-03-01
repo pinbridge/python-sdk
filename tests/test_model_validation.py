@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from pinbridge_sdk.models import (
     BillingStatusResponse,
     BoardCreateRequest,
+    ImportJobResponse,
     LoginRequest,
     PinCreate,
     PricingCatalogResponse,
@@ -65,6 +66,41 @@ def test_current_billing_payloads_parse() -> None:
 
     assert billing.overage_pins_used == 0
     assert pricing.plans[0].overage_billing_threshold_pins == 100
+
+
+def test_import_job_payloads_parse() -> None:
+    job = ImportJobResponse.model_validate(
+        {
+            "id": "33333333-3333-3333-3333-333333333333",
+            "workspace_id": "22222222-2222-2222-2222-222222222222",
+            "source_type": "json",
+            "status": "completed_with_errors",
+            "source_filename": None,
+            "total_rows": 2,
+            "processed_rows": 2,
+            "created_rows": 1,
+            "existing_rows": 0,
+            "failed_rows": 1,
+            "results": [
+                {
+                    "row_number": 1,
+                    "status": "created",
+                    "pin_id": "11111111-1111-1111-1111-111111111111",
+                    "idempotency_key": "bulk-1",
+                    "error_code": None,
+                    "error_message": None,
+                }
+            ],
+            "error_message": None,
+            "started_at": "2026-02-23T12:00:00Z",
+            "completed_at": "2026-02-23T12:00:00Z",
+            "created_at": "2026-02-23T12:00:00Z",
+            "updated_at": "2026-02-23T12:00:00Z",
+        }
+    )
+
+    assert job.status.value == "completed_with_errors"
+    assert job.results[0].status == "created"
 
 
 @pytest.mark.parametrize(

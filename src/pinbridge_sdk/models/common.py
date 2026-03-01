@@ -45,6 +45,19 @@ class PinMediaType(str, Enum):
     VIDEO = "video"
 
 
+class ImportSourceType(str, Enum):
+    JSON = "json"
+    CSV = "csv"
+
+
+class ImportJobStatus(str, Enum):
+    QUEUED = "queued"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    COMPLETED_WITH_ERRORS = "completed_with_errors"
+    FAILED = "failed"
+
+
 class ScheduleStatus(str, Enum):
     SCHEDULED = "scheduled"
     QUEUED = "queued"

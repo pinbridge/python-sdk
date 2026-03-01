@@ -6,10 +6,10 @@ from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import HttpUrl, StringConstraints, model_validator
+from pydantic import Field, HttpUrl, StringConstraints, model_validator
 
 from .base import PinbridgeModel
-from .common import PinMediaType, PinStatus
+from .common import ImportJobStatus, ImportSourceType, PinMediaType, PinStatus
 
 PinTitle = Annotated[str, StringConstraints(max_length=500)]
 IdempotencyKey = Annotated[str, StringConstraints(max_length=255)]
@@ -65,3 +65,31 @@ class JobStatusResponse(PinbridgeModel):
     pinterest_pin_id: str | None = None
     error_code: str | None = None
     error_message: str | None = None
+
+
+class BulkPinImportRowResult(PinbridgeModel):
+    row_number: int
+    status: str
+    pin_id: UUID | None = None
+    idempotency_key: str | None = None
+    error_code: str | None = None
+    error_message: str | None = None
+
+
+class ImportJobResponse(PinbridgeModel):
+    id: UUID
+    workspace_id: UUID
+    source_type: ImportSourceType
+    status: ImportJobStatus
+    source_filename: str | None = None
+    total_rows: int
+    processed_rows: int
+    created_rows: int
+    existing_rows: int
+    failed_rows: int
+    results: list[BulkPinImportRowResult] = Field(default_factory=list)
+    error_message: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime

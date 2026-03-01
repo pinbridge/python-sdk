@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 import httpx
 
-from .._types import HeadersLike, JsonDict, PathValue, RequestData, RequestFiles
+from .._types import HeadersLike, PathValue, RequestData, RequestFiles, RequestJson
 from ..models.base import PinbridgeModel
 
 if TYPE_CHECKING:
@@ -30,7 +30,7 @@ class SyncAPIResource:
         *,
         path_params: Mapping[str, PathValue] | None = None,
         params: Mapping[str, Any] | None = None,
-        json: JsonDict | None = None,
+        json: RequestJson | None = None,
         data: RequestData | None = None,
         files: RequestFiles | None = None,
         headers: HeadersLike | None = None,
@@ -80,7 +80,7 @@ class AsyncAPIResource:
         *,
         path_params: Mapping[str, PathValue] | None = None,
         params: Mapping[str, Any] | None = None,
-        json: JsonDict | None = None,
+        json: RequestJson | None = None,
         data: RequestData | None = None,
         files: RequestFiles | None = None,
         headers: HeadersLike | None = None,
