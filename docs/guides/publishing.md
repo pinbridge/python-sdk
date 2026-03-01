@@ -1,12 +1,18 @@
 # Publishing
 
 Pin publishing in the SDK is split between immediate publishing with `pins` and deferred
-publishing with `schedules`.
+publishing with `schedules`. When your source image is local, upload it first and then
+reference the returned `asset_id`.
 
 ## Publish A Pin Immediately
 
 ```python
 from pinbridge_sdk.models import PinCreate
+
+asset = client.assets.upload_image(
+    "./pin-image.png",
+    content_type="image/png",
+)
 
 pin = client.pins.create(
     PinCreate(
@@ -15,7 +21,7 @@ pin = client.pins.create(
         title="Hello from PinBridge",
         description="Published through the Python SDK",
         link_url="https://example.com",
-        image_url="https://example.com/image.jpg",
+        asset_id=asset.id,
         idempotency_key="pinbridge-demo-001",
     )
 )
@@ -45,7 +51,7 @@ schedule = client.schedules.create(
         title="Scheduled pin",
         description="Created from docs",
         link_url="https://example.com",
-        image_url="https://example.com/image.jpg",
+        asset_id=asset.id,
     )
 )
 print(schedule.id)
@@ -61,4 +67,5 @@ client.schedules.cancel(schedule.id)
 
 - Always provide a stable `idempotency_key` for immediate publishing
 - Use timezone-aware datetimes for `run_at`
+- Use `assets.upload_image()` for local files and `image_url` for already hosted media
 - Poll `jobs.get()` or fetch the saved pin/schedule record instead of assuming success immediately

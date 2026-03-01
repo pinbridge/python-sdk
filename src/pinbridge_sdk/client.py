@@ -8,11 +8,12 @@ from typing import Any
 import httpx
 
 from ._client_base import ClientCore
-from ._types import HeadersLike, JsonDict, PathValue
+from ._types import HeadersLike, JsonDict, PathValue, RequestData, RequestFiles
 from ._version import __version__
 from .errors import map_api_error
 from .resources import (
     APIKeysResource,
+    AssetsResource,
     AuthResource,
     BillingResource,
     JobsResource,
@@ -39,6 +40,7 @@ class PinbridgeClient:
         "system": SystemResource,
         "auth": AuthResource,
         "api_keys": APIKeysResource,
+        "assets": AssetsResource,
         "pinterest": PinterestResource,
         "projects": ProjectsResource,
         "pins": PinsResource,
@@ -109,6 +111,8 @@ class PinbridgeClient:
         path_params: Mapping[str, PathValue] | None = None,
         params: Mapping[str, Any] | None = None,
         json: JsonDict | None = None,
+        data: RequestData | None = None,
+        files: RequestFiles | None = None,
         headers: HeadersLike | None = None,
         content: str | bytes | None = None,
         follow_redirects: bool | None = None,
@@ -119,6 +123,8 @@ class PinbridgeClient:
             url,
             params=params,
             json=json,
+            data=data,
+            files=files,
             content=content,
             headers=self._core.build_headers(headers),
             follow_redirects=(

@@ -1,6 +1,6 @@
 # PinBridge Python SDK
 
-Official Python SDK for the PinBridge API.
+Official Python SDK for the PinBridge API, including multipart image asset upload support for local publishing workflows.
 
 Documentation in this repository is built with MkDocs. After installing docs dependencies,
 run `python scripts/generate_reference.py` and `mkdocs serve` from the `python-sdk/`
@@ -158,6 +158,8 @@ client.set_bearer_token(switched.access_token)
 
 ### Pins and Jobs (`client.pins`, `client.jobs`)
 
+- `client.assets.upload_image(file, filename=..., content_type=...)`
+- `client.assets.get(asset_id)`
 - `client.pins.create(PinCreate | dict)`
 - `client.pins.get(pin_id)`
 - `client.pins.list(limit=50, offset=0)`
@@ -167,13 +169,18 @@ client.set_bearer_token(switched.access_token)
 ```python
 from pinbridge_sdk.models import PinCreate
 
+asset = client.assets.upload_image(
+    "./pin-image.png",
+    content_type="image/png",
+)
+
 pin = client.pins.create(
     PinCreate(
         account_id="...",
         board_id="...",
         title="Hello",
         description="From SDK",
-        image_url="https://example.com/image.jpg",
+        asset_id=asset.id,
         idempotency_key="my-idempotency-key",
     )
 )
@@ -187,6 +194,8 @@ print(status.status)
 - `get(schedule_id)`
 - `list(limit=50, offset=0)`
 - `cancel(schedule_id)`
+
+Pins and schedules accept either a public `image_url` or an uploaded `asset_id`.
 
 ### Webhooks (`client.webhooks`)
 

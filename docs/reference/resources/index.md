@@ -2,6 +2,7 @@
 # Resources
 
 - [API Keys](api_keys.md)
+- [Assets](assets.md)
 - [Auth](auth.md)
 - [Billing](billing.md)
 - [Pins](pins.md)

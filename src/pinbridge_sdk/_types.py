@@ -9,3 +9,5 @@ from uuid import UUID
 JsonDict = dict[str, Any]
 HeadersLike = Mapping[str, str]
 PathValue = str | int | UUID
+RequestFiles = Mapping[str, Any]
+RequestData = Mapping[str, Any]

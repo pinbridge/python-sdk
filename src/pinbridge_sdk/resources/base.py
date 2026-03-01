@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 import httpx
 
-from .._types import HeadersLike, JsonDict, PathValue
+from .._types import HeadersLike, JsonDict, PathValue, RequestData, RequestFiles
 from ..models.base import PinbridgeModel
 
 if TYPE_CHECKING:
@@ -31,6 +31,8 @@ class SyncAPIResource:
         path_params: Mapping[str, PathValue] | None = None,
         params: Mapping[str, Any] | None = None,
         json: JsonDict | None = None,
+        data: RequestData | None = None,
+        files: RequestFiles | None = None,
         headers: HeadersLike | None = None,
         content: str | bytes | None = None,
         follow_redirects: bool | None = None,
@@ -41,6 +43,8 @@ class SyncAPIResource:
             path_params=path_params,
             params=params,
             json=json,
+            data=data,
+            files=files,
             headers=headers,
             content=content,
             follow_redirects=follow_redirects,
@@ -77,6 +81,8 @@ class AsyncAPIResource:
         path_params: Mapping[str, PathValue] | None = None,
         params: Mapping[str, Any] | None = None,
         json: JsonDict | None = None,
+        data: RequestData | None = None,
+        files: RequestFiles | None = None,
         headers: HeadersLike | None = None,
         content: str | bytes | None = None,
         follow_redirects: bool | None = None,
@@ -87,6 +93,8 @@ class AsyncAPIResource:
             path_params=path_params,
             params=params,
             json=json,
+            data=data,
+            files=files,
             headers=headers,
             content=content,
             follow_redirects=follow_redirects,

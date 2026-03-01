@@ -11,6 +11,7 @@ from _payloads import (
     UUID4,
     api_key_create_response,
     api_key_response,
+    asset_response,
     auth_response,
     billing_status_response,
     board_response,
@@ -33,6 +34,7 @@ from pinbridge_sdk import PinbridgeClient
 from pinbridge_sdk.models import (
     APIKeyCreate,
     APIKeyUpdate,
+    AssetType,
     BillingCycle,
     BoardCreateRequest,
     CheckoutRequest,
@@ -106,6 +108,14 @@ def test_sync_resource_methods_end_to_end() -> None:
 
         if (method, path) == ("GET", "/v1/api-keys"):
             return httpx.Response(200, json=[api_key_response()])
+
+        if (method, path) == ("POST", "/v1/assets/images"):
+            assert "multipart/form-data" in request.headers["content-type"]
+            assert b"asset-binary" in request.content
+            return httpx.Response(201, json=asset_response())
+
+        if (method, path) == ("GET", f"/v1/assets/{UUID3}"):
+            return httpx.Response(200, json=asset_response())
 
         if (method, path) == ("PATCH", f"/v1/api-keys/{UUID3}"):
             payload = _request_json(request)
@@ -256,6 +266,13 @@ def test_sync_resource_methods_end_to_end() -> None:
         assert len(client.api_keys.list()) == 1
         assert client.api_keys.update(UUID3, APIKeyUpdate(name="renamed")).id
         client.api_keys.revoke(UUID3)
+        asset = client.assets.upload_image(
+            b"asset-binary",
+            filename="pin.png",
+            content_type="image/png",
+        )
+        assert asset.asset_type == AssetType.IMAGE
+        assert client.assets.get(UUID3).id
 
         assert client.pinterest.start_oauth().authorization_url
         callback = client.pinterest.oauth_callback(code="abc", state="state")
@@ -280,7 +297,7 @@ def test_sync_resource_methods_end_to_end() -> None:
                 title="A Pin",
                 description="Pin description",
                 link_url="https://example.com",
-                image_url="https://example.com/image.jpg",
+                asset_id=UUID3,
                 idempotency_key="idem-123",
             )
         )
@@ -298,7 +315,7 @@ def test_sync_resource_methods_end_to_end() -> None:
                 title="Scheduled",
                 description="Scheduled",
                 link_url="https://example.com",
-                image_url="https://example.com/image.jpg",
+                asset_id=UUID3,
             )
         )
         assert schedule.id
@@ -331,6 +348,7 @@ def test_sync_resource_methods_end_to_end() -> None:
         assert client.system.stripe_webhook("{}", stripe_signature="sig")["status"] == "success"
 
     assert ("POST", "/v1/pins") in seen
+    assert ("POST", "/v1/assets/images") in seen
     assert ("GET", "/v1/billing/pricing") in seen
 
 

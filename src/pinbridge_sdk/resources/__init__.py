@@ -1,6 +1,7 @@
 """Resource groups exposed by clients."""
 
 from .api_keys import APIKeysResource, AsyncAPIKeysResource
+from .assets import AssetsResource, AsyncAssetsResource
 from .auth import AsyncAuthResource, AuthResource
 from .billing import (
     AsyncBillingResource,
@@ -18,6 +19,8 @@ from .webhooks import AsyncWebhooksResource, WebhooksResource
 __all__ = [
     "APIKeysResource",
     "AsyncAPIKeysResource",
+    "AssetsResource",
+    "AsyncAssetsResource",
     "AsyncAuthResource",
     "AsyncBillingResource",
     "AsyncJobsResource",

@@ -83,6 +83,17 @@ def test_current_billing_payloads_parse() -> None:
             },
         ),
         (
+            PinCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "board_id": "board-1",
+                "title": "Pin",
+                "image_url": "https://example.com/pin.jpg",
+                "asset_id": "33333333-3333-3333-3333-333333333333",
+                "idempotency_key": "idem-1",
+            },
+        ),
+        (
             ScheduleCreate,
             {
                 "account_id": "44444444-4444-4444-4444-444444444444",
@@ -90,6 +101,17 @@ def test_current_billing_payloads_parse() -> None:
                 "board_id": "board-1",
                 "title": "Scheduled",
                 "image_url": "not-a-url",
+            },
+        ),
+        (
+            ScheduleCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "run_at": "2026-02-24T12:00:00Z",
+                "board_id": "board-1",
+                "title": "Scheduled",
+                "image_url": "https://example.com/pin.jpg",
+                "asset_id": "33333333-3333-3333-3333-333333333333",
             },
         ),
         (

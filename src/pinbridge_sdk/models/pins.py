@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import HttpUrl, StringConstraints
+from pydantic import HttpUrl, StringConstraints, model_validator
 
 from .base import PinbridgeModel
 from .common import PinStatus
@@ -21,8 +21,17 @@ class PinCreate(PinbridgeModel):
     title: PinTitle
     description: str | None = None
     link_url: HttpUrl | None = None
-    image_url: HttpUrl
+    image_url: HttpUrl | None = None
+    asset_id: UUID | None = None
     idempotency_key: IdempotencyKey
+
+    @model_validator(mode="after")
+    def validate_media_source(self) -> "PinCreate":
+        if self.image_url is None and self.asset_id is None:
+            raise ValueError("Either image_url or asset_id must be provided")
+        if self.image_url is not None and self.asset_id is not None:
+            raise ValueError("Provide either image_url or asset_id, not both")
+        return self
 
 
 class PinResponse(PinbridgeModel):
@@ -34,6 +43,7 @@ class PinResponse(PinbridgeModel):
     description: str | None = None
     link_url: str | None = None
     image_url: str
+    asset_id: UUID | None = None
     board_id: str
     pinterest_pin_id: str | None = None
     error_code: str | None = None

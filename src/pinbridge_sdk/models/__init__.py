@@ -1,6 +1,7 @@
 """Typed request/response models for PinBridge APIs."""
 
 from .api_keys import APIKeyCreate, APIKeyCreateResponse, APIKeyResponse, APIKeyUpdate
+from .assets import AssetResponse, AssetType
 from .auth import (
     AuthOrganizationResponse,
     AuthResponse,
@@ -57,6 +58,8 @@ __all__ = [
     "APIKeyCreateResponse",
     "APIKeyResponse",
     "APIKeyUpdate",
+    "AssetResponse",
+    "AssetType",
     "AuthResponse",
     "AuthOrganizationResponse",
     "AuthUserResponse",

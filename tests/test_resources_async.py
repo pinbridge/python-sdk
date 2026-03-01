@@ -11,6 +11,7 @@ from _payloads import (
     UUID4,
     api_key_create_response,
     api_key_response,
+    asset_response,
     auth_response,
     billing_status_response,
     board_response,
@@ -33,6 +34,7 @@ from pinbridge_sdk import AsyncPinbridgeClient
 from pinbridge_sdk.models import (
     APIKeyCreate,
     APIKeyUpdate,
+    AssetType,
     BillingCycle,
     BoardCreateRequest,
     CheckoutRequest,
@@ -96,6 +98,13 @@ async def test_async_resource_methods_end_to_end() -> None:
             return httpx.Response(200, json=api_key_response())
         if (method, path) == ("DELETE", f"/v1/api-keys/{UUID3}"):
             return httpx.Response(204)
+
+        if (method, path) == ("POST", "/v1/assets/images"):
+            assert "multipart/form-data" in request.headers["content-type"]
+            assert b"asset-binary" in request.content
+            return httpx.Response(201, json=asset_response())
+        if (method, path) == ("GET", f"/v1/assets/{UUID3}"):
+            return httpx.Response(200, json=asset_response())
 
         if (method, path) == ("GET", "/v1/pinterest/oauth/start"):
             return httpx.Response(200, json={"authorization_url": "https://pinterest.example/auth"})
@@ -190,6 +199,13 @@ async def test_async_resource_methods_end_to_end() -> None:
         await client.api_keys.list()
         await client.api_keys.update(UUID3, APIKeyUpdate(name="renamed"))
         await client.api_keys.revoke(UUID3)
+        asset = await client.assets.upload_image(
+            b"asset-binary",
+            filename="pin.png",
+            content_type="image/png",
+        )
+        assert asset.asset_type == AssetType.IMAGE
+        assert (await client.assets.get(UUID3)).id
 
         await client.pinterest.start_oauth()
         callback = await client.pinterest.oauth_callback(code="abc", state="state")
@@ -209,7 +225,7 @@ async def test_async_resource_methods_end_to_end() -> None:
                 title="A Pin",
                 description="Pin description",
                 link_url="https://example.com",
-                image_url="https://example.com/image.jpg",
+                asset_id=UUID3,
                 idempotency_key="idem-123",
             )
         )
@@ -226,7 +242,7 @@ async def test_async_resource_methods_end_to_end() -> None:
                 title="Scheduled",
                 description="Scheduled",
                 link_url="https://example.com",
-                image_url="https://example.com/image.jpg",
+                asset_id=UUID3,
             )
         )
         await client.schedules.list()

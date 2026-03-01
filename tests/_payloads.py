@@ -137,6 +137,7 @@ def pin_response() -> dict:
         "description": "Pin description",
         "link_url": "https://example.com",
         "image_url": "https://example.com/image.jpg",
+        "asset_id": UUID3,
         "board_id": "123-board",
         "pinterest_pin_id": None,
         "error_code": None,
@@ -174,6 +175,7 @@ def schedule_response() -> dict:
             "description": "Scheduled",
             "link_url": "https://example.com",
             "image_url": "https://example.com/image.jpg",
+            "asset_id": UUID3,
         },
         "last_error": None,
         "pin_id": None,
@@ -243,11 +245,26 @@ def billing_status_response() -> dict:
 
 
 def root_response() -> dict:
-    return {"service": "PinBridge API", "version": "0.1.0", "docs": "/docs"}
+    return {"service": "PinBridge API", "version": "1.0.0", "docs": "/docs"}
 
 
 def health_response() -> dict:
-    return {"status": "ok", "version": "0.1.0", "environment": "test", "database": "ok"}
+    return {"status": "ok", "version": "1.0.0", "environment": "test", "database": "ok"}
+
+
+def asset_response() -> dict:
+    return {
+        "id": UUID3,
+        "workspace_id": UUID2,
+        "asset_type": "image",
+        "original_filename": "pin.png",
+        "stored_filename": f"{UUID3}.png",
+        "content_type": "image/png",
+        "file_size_bytes": 68,
+        "public_url": f"https://api.pinbridge.test/v1/assets/{UUID3}/content",
+        "created_at": TS,
+        "updated_at": TS,
+    }
 
 
 def rate_meter_response() -> dict:
