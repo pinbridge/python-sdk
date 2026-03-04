@@ -23,7 +23,13 @@ def test_request_includes_auth_headers(base_url: str) -> None:
         seen["authorization"] = request.headers.get("authorization", "")
         seen["x-custom"] = request.headers.get("x-custom", "")
         return httpx.Response(
-            200, json={"status": "ok", "version": "0.1.0", "environment": "test", "database": "ok"}
+            200,
+            json={
+                "status": "ok",
+                "version": "0.1.0",
+                "environment": "test",
+                "checks": {"app": "ok"},
+            },
         )
 
     transport = httpx.MockTransport(handler)
@@ -61,9 +67,11 @@ def test_typed_list_parsing(base_url: str) -> None:
             "workspace_id": "f410a8fe-9f2e-4cf9-8cdf-5a4b81d56f1d",
             "pinterest_account_id": "f410a8fe-9f2e-4cf9-8cdf-5a4b81d56f1e",
             "status": "queued",
+            "media_type": "image",
             "title": "Pin title",
             "description": None,
             "link_url": None,
+            "media_url": "https://images.example.com/pin.jpg",
             "image_url": "https://images.example.com/pin.jpg",
             "board_id": "123",
             "pinterest_pin_id": None,
@@ -108,7 +116,13 @@ def test_register_custom_resource(base_url: str) -> None:
 
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(
-            200, json={"status": "ok", "version": "0.1.0", "environment": "test", "database": "ok"}
+            200,
+            json={
+                "status": "ok",
+                "version": "0.1.0",
+                "environment": "test",
+                "checks": {"app": "ok"},
+            },
         )
 
     transport = httpx.MockTransport(handler)

@@ -17,6 +17,13 @@ class HealthResponse(PinbridgeModel):
     status: str
     version: str
     environment: str
+    checks: dict[str, str] | None = None
+
+
+class ReadinessResponse(PinbridgeModel):
+    status: str
+    version: str
+    environment: str
     database: str
 
 

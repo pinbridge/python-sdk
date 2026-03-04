@@ -13,7 +13,7 @@ async def test_async_client_health() -> None:
                 "status": "ok",
                 "version": "0.1.0",
                 "environment": "test",
-                "database": "ok",
+                "checks": {"app": "ok"},
             },
         )
 

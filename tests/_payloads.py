@@ -291,6 +291,15 @@ def root_response() -> dict:
 
 
 def health_response() -> dict:
+    return {
+        "status": "ok",
+        "version": "1.0.0",
+        "environment": "test",
+        "checks": {"app": "ok"},
+    }
+
+
+def readiness_response() -> dict:
     return {"status": "ok", "version": "1.0.0", "environment": "test", "database": "ok"}
 
 

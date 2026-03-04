@@ -95,11 +95,15 @@ All sync resources are available on `PinbridgeClient`; async equivalents have id
 
 - `root()`
 - `health()`
+- `readiness()`
 - `stripe_webhook(body, stripe_signature=...)`
 
 ```python
 health = client.system.health()
-print(health.status, health.database)
+print(health.status, health.checks)
+
+ready = client.system.readiness()
+print(ready.status, ready.database)
 ```
 
 ### Auth (`client.auth`)

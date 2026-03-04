@@ -67,7 +67,13 @@ def test_with_options_clones_auth_headers_and_custom_resources() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         seen.append(request)
         return httpx.Response(
-            200, json={"status": "ok", "version": "0.1.0", "environment": "test", "database": "ok"}
+            200,
+            json={
+                "status": "ok",
+                "version": "0.1.0",
+                "environment": "test",
+                "checks": {"app": "ok"},
+            },
         )
 
     transport = httpx.MockTransport(handler)
@@ -101,7 +107,13 @@ def test_default_user_agent_tracks_package_version() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         seen["user-agent"] = request.headers["user-agent"]
         return httpx.Response(
-            200, json={"status": "ok", "version": "0.1.0", "environment": "test", "database": "ok"}
+            200,
+            json={
+                "status": "ok",
+                "version": "0.1.0",
+                "environment": "test",
+                "checks": {"app": "ok"},
+            },
         )
 
     transport = httpx.MockTransport(handler)

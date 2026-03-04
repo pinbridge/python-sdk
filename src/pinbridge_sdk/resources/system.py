@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..models.system import HealthResponse, RootResponse
+from ..models.system import HealthResponse, ReadinessResponse, RootResponse
 from .base import AsyncAPIResource, SyncAPIResource
 
 
@@ -16,6 +16,10 @@ class SystemResource(SyncAPIResource):
     def health(self) -> HealthResponse:
         response = self._request("GET", "/healthz")
         return self._model(HealthResponse, response)
+
+    def readiness(self) -> ReadinessResponse:
+        response = self._request("GET", "/readyz")
+        return self._model(ReadinessResponse, response)
 
     def stripe_webhook(self, body: str | bytes, *, stripe_signature: str) -> dict[str, Any]:
         response = self._request(
@@ -36,6 +40,10 @@ class AsyncSystemResource(AsyncAPIResource):
     async def health(self) -> HealthResponse:
         response = await self._request("GET", "/healthz")
         return self._model(HealthResponse, response)
+
+    async def readiness(self) -> ReadinessResponse:
+        response = await self._request("GET", "/readyz")
+        return self._model(ReadinessResponse, response)
 
     async def stripe_webhook(self, body: str | bytes, *, stripe_signature: str) -> dict[str, Any]:
         response = await self._request(

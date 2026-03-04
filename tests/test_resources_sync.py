@@ -26,6 +26,7 @@ from _payloads import (
     project_switch_response,
     projects_context_response,
     rate_meter_response,
+    readiness_response,
     root_response,
     schedule_response,
     webhook_response,
@@ -258,6 +259,8 @@ def test_sync_resource_methods_end_to_end() -> None:
 
         if (method, path) == ("GET", "/healthz"):
             return httpx.Response(200, json=health_response())
+        if (method, path) == ("GET", "/readyz"):
+            return httpx.Response(200, json=readiness_response())
 
         if (method, path) == ("POST", "/v1/stripe/webhook"):
             assert request.headers["stripe-signature"] == "sig"
@@ -409,6 +412,7 @@ def test_sync_resource_methods_end_to_end() -> None:
 
         assert client.system.root().service == "PinBridge API"
         assert client.system.health().status == "ok"
+        assert client.system.readiness().database == "ok"
         assert client.system.stripe_webhook("{}", stripe_signature="sig")["status"] == "success"
 
     assert ("POST", "/v1/pins") in seen

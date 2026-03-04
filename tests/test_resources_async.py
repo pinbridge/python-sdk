@@ -26,6 +26,7 @@ from _payloads import (
     project_switch_response,
     projects_context_response,
     rate_meter_response,
+    readiness_response,
     root_response,
     schedule_response,
     webhook_response,
@@ -193,6 +194,8 @@ async def test_async_resource_methods_end_to_end() -> None:
             return httpx.Response(200, json=root_response())
         if (method, path) == ("GET", "/healthz"):
             return httpx.Response(200, json=health_response())
+        if (method, path) == ("GET", "/readyz"):
+            return httpx.Response(200, json=readiness_response())
         if (method, path) == ("POST", "/v1/stripe/webhook"):
             return httpx.Response(200, json={"status": "success"})
 
@@ -324,6 +327,8 @@ async def test_async_resource_methods_end_to_end() -> None:
 
         await client.system.root()
         await client.system.health()
+        readiness = await client.system.readiness()
+        assert readiness.database == "ok"
         await client.system.stripe_webhook("{}", stripe_signature="sig")
 
     assert ("POST", "/v1/webhooks") in seen
