@@ -24,6 +24,20 @@ pip install -e .[dev]
 - PinBridge API URL (default: `https://api.pinbridge.io`)
 - Authentication via API key and/or bearer token
 
+## Publish to PyPI
+
+After updating and committing the target SDK version:
+
+3. Create and push a matching version tag:
+
+```bash
+git tag v1.1.0
+git push origin main
+git push origin v1.0.2
+```
+
+4. Wait for the GitHub Actions `Publish` workflow to finish and verify the package on PyPI.
+
 ## Client Initialization
 
 ```python
@@ -195,6 +209,9 @@ pin = client.pins.create(
         board_id="...",
         title="Hello",
         description="From SDK",
+        alt_text="Descriptive alt text for accessibility",
+        related_terms=["meal prep", "vegetables"],
+        dominant_color="#E88A2D",
         asset_id=asset.id,
         idempotency_key="my-idempotency-key",
     )
@@ -215,6 +232,7 @@ video_pin = client.pins.create(
         board_id="...",
         title="Video launch",
         asset_id=video_asset.id,
+        cover_image_url="https://cdn.example.com/video-cover.jpg",
         idempotency_key="video-idempotency-key",
     )
 )
@@ -256,6 +274,8 @@ timestamps with an explicit timezone offset (for example `2026-03-06T10:00:00Z`)
 - `cancel(schedule_id)`
 
 Pins and schedules accept either a public `image_url` or an uploaded `asset_id`. Video publishes and schedules should use uploaded assets.
+Pinterest-compatible limits are enforced in SDK models: `title <= 100`, `description <= 800`,
+`alt_text <= 500`, and URLs (`link_url`, `cover_image_url`) `<= 2048`.
 
 ### Webhooks (`client.webhooks`)
 

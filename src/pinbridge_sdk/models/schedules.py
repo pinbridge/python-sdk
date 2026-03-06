@@ -11,7 +11,8 @@ from pydantic import HttpUrl, StringConstraints, field_validator, model_validato
 from .base import PinbridgeModel
 from .common import ScheduleStatus
 
-ScheduleTitle = Annotated[str, StringConstraints(max_length=500)]
+ScheduleTitle = Annotated[str, StringConstraints(max_length=100)]
+ScheduleDescription = Annotated[str, StringConstraints(max_length=800)]
 
 
 class ScheduleCreate(PinbridgeModel):
@@ -19,7 +20,9 @@ class ScheduleCreate(PinbridgeModel):
     run_at: datetime
     board_id: str
     title: ScheduleTitle
-    description: str | None = None
+    description: ScheduleDescription | None = None
+    cover_image_url: HttpUrl | None = None
+    cover_image_asset_id: UUID | None = None
     link_url: HttpUrl | None = None
     image_url: HttpUrl | None = None
     asset_id: UUID | None = None
@@ -30,6 +33,8 @@ class ScheduleCreate(PinbridgeModel):
             raise ValueError("Either image_url or asset_id must be provided")
         if self.image_url is not None and self.asset_id is not None:
             raise ValueError("Provide either image_url or asset_id, not both")
+        if self.cover_image_url is not None and self.cover_image_asset_id is not None:
+            raise ValueError("Provide either cover_image_url or cover_image_asset_id, not both")
         return self
 
     @field_validator("run_at")
@@ -40,6 +45,24 @@ class ScheduleCreate(PinbridgeModel):
                 "run_at must include a timezone offset (for example 2026-03-06T10:00:00Z)"
             )
         return value.astimezone(timezone.utc)
+
+    @field_validator("link_url")
+    @classmethod
+    def validate_link_url_length(cls, value: HttpUrl | None) -> HttpUrl | None:
+        if value is None:
+            return None
+        if len(str(value)) > 2048:
+            raise ValueError("link_url must be <= 2048 characters")
+        return value
+
+    @field_validator("cover_image_url")
+    @classmethod
+    def validate_cover_image_url_length(cls, value: HttpUrl | None) -> HttpUrl | None:
+        if value is None:
+            return None
+        if len(str(value)) > 2048:
+            raise ValueError("cover_image_url must be <= 2048 characters")
+        return value
 
 
 class ScheduleResponse(PinbridgeModel):

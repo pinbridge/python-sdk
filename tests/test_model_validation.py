@@ -156,6 +156,72 @@ def test_import_job_payloads_parse() -> None:
             },
         ),
         (
+            PinCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "board_id": "board-1",
+                "title": "x" * 101,
+                "image_url": "https://example.com/pin.jpg",
+                "idempotency_key": "idem-1",
+            },
+        ),
+        (
+            PinCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "board_id": "board-1",
+                "title": "Pin",
+                "description": "x" * 801,
+                "image_url": "https://example.com/pin.jpg",
+                "idempotency_key": "idem-1",
+            },
+        ),
+        (
+            PinCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "board_id": "board-1",
+                "title": "Pin",
+                "image_url": "https://example.com/pin.jpg",
+                "link_url": f"https://example.com/{'x' * 2100}",
+                "idempotency_key": "idem-1",
+            },
+        ),
+        (
+            PinCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "board_id": "board-1",
+                "title": "Pin",
+                "image_url": "https://example.com/pin.jpg",
+                "alt_text": "x" * 501,
+                "idempotency_key": "idem-1",
+            },
+        ),
+        (
+            PinCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "board_id": "board-1",
+                "title": "Pin",
+                "image_url": "https://example.com/pin.jpg",
+                "dominant_color": "orange",
+                "idempotency_key": "idem-1",
+            },
+        ),
+        (
+            PinCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "board_id": "board-1",
+                "title": "Pin",
+                "image_url": "https://example.com/pin.jpg",
+                "cover_image_url": "https://example.com/cover.jpg",
+                "cover_image_asset_id": "33333333-3333-3333-3333-333333333333",
+                "idempotency_key": "idem-1",
+            },
+        ),
+        (
             PinImportCreate,
             {
                 "account_id": "44444444-4444-4444-4444-444444444444",
@@ -188,6 +254,50 @@ def test_import_job_payloads_parse() -> None:
             },
         ),
         (
+            ScheduleCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "run_at": "2026-02-24T12:00:00Z",
+                "board_id": "board-1",
+                "title": "x" * 101,
+                "image_url": "https://example.com/pin.jpg",
+            },
+        ),
+        (
+            ScheduleCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "run_at": "2026-02-24T12:00:00Z",
+                "board_id": "board-1",
+                "title": "Scheduled",
+                "description": "x" * 801,
+                "image_url": "https://example.com/pin.jpg",
+            },
+        ),
+        (
+            ScheduleCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "run_at": "2026-02-24T12:00:00Z",
+                "board_id": "board-1",
+                "title": "Scheduled",
+                "link_url": f"https://example.com/{'x' * 2100}",
+                "image_url": "https://example.com/pin.jpg",
+            },
+        ),
+        (
+            ScheduleCreate,
+            {
+                "account_id": "44444444-4444-4444-4444-444444444444",
+                "run_at": "2026-02-24T12:00:00Z",
+                "board_id": "board-1",
+                "title": "Scheduled",
+                "image_url": "https://example.com/pin.jpg",
+                "cover_image_url": "https://example.com/cover.jpg",
+                "cover_image_asset_id": "33333333-3333-3333-3333-333333333333",
+            },
+        ),
+        (
             WebhookCreate,
             {"url": "https://example.com/hook", "secret": "short", "events": ["pin.published"]},
         ),
@@ -206,3 +316,20 @@ def test_request_models_reject_invalid_payloads(
 ) -> None:
     with pytest.raises(ValidationError):
         model_cls.model_validate(payload)
+
+
+def test_pin_create_normalizes_related_terms_and_dominant_color() -> None:
+    model = PinCreate.model_validate(
+        {
+            "account_id": "44444444-4444-4444-4444-444444444444",
+            "board_id": "board-1",
+            "title": "Pin",
+            "image_url": "https://example.com/pin.jpg",
+            "idempotency_key": "idem-1",
+            "related_terms": " meals, , carrots ,meal prep ",
+            "dominant_color": "6e7874",
+        }
+    )
+
+    assert model.related_terms == ["meals", "carrots", "meal prep"]
+    assert model.dominant_color == "#6E7874"

@@ -21,6 +21,9 @@ pin = client.pins.create(
         title="Hello from PinBridge",
         description="Published through the Python SDK",
         link_url="https://example.com",
+        alt_text="Bowl of glazed carrots with fresh herbs",
+        related_terms=["meal prep", "glazed carrots"],
+        dominant_color="#E88A2D",
         asset_id=asset.id,
         idempotency_key="pinbridge-demo-001",
     )
@@ -42,6 +45,7 @@ video_pin = client.pins.create(
         board_id="123-board",
         title="Video launch",
         description="Published through the Python SDK",
+        cover_image_url="https://cdn.example.com/video-cover.jpg",
         asset_id=video_asset.id,
         idempotency_key="pinbridge-video-001",
     )
@@ -125,4 +129,6 @@ client.schedules.cancel(schedule.id)
 - Use `assets.upload_image()` or `assets.upload_video()` for local files
 - Keep `image_url` for already hosted images
 - Use uploaded `asset_id` values for video publishes and schedules
+- Optional Pinterest metadata on immediate publishes: `related_terms`, `alt_text`, `dominant_color`
+- SDK request validation enforces Pinterest limits: `title <= 100`, `description <= 800`, `alt_text <= 500`, URLs `<= 2048`
 - Poll `jobs.get()` or fetch the saved pin/schedule record instead of assuming success immediately

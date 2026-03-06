@@ -202,6 +202,9 @@ def test_sync_resource_methods_end_to_end() -> None:
         if (method, path) == ("POST", "/v1/pins"):
             payload = _request_json(request)
             assert payload["idempotency_key"] == "idem-123"
+            assert payload["alt_text"] == "Bowl of glazed carrots with herbs"
+            assert payload["related_terms"] == ["meal prep", "glazed carrots"]
+            assert payload["dominant_color"] == "#E88A2D"
             return httpx.Response(201, json=pin_response())
 
         if (method, path) == ("POST", "/v1/pins/imports/json"):
@@ -244,6 +247,7 @@ def test_sync_resource_methods_end_to_end() -> None:
         if (method, path) == ("POST", "/v1/schedules"):
             payload = _request_json(request)
             assert payload["title"] == "Scheduled"
+            assert payload["cover_image_url"] == "https://example.com/video-cover.jpg"
             return httpx.Response(201, json=schedule_response())
 
         if (method, path) == ("GET", "/v1/schedules"):
@@ -403,6 +407,9 @@ def test_sync_resource_methods_end_to_end() -> None:
                 title="A Pin",
                 description="Pin description",
                 link_url="https://example.com",
+                related_terms=["meal prep", "glazed carrots"],
+                alt_text="Bowl of glazed carrots with herbs",
+                dominant_color="#e88a2d",
                 asset_id=UUID3,
                 idempotency_key="idem-123",
             )
@@ -459,6 +466,7 @@ def test_sync_resource_methods_end_to_end() -> None:
                 title="Scheduled",
                 description="Scheduled",
                 link_url="https://example.com",
+                cover_image_url="https://example.com/video-cover.jpg",
                 asset_id=UUID3,
             )
         )

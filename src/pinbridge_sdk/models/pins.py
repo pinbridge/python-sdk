@@ -11,7 +11,9 @@ from pydantic import Field, HttpUrl, StringConstraints, field_validator, model_v
 from .base import PinbridgeModel
 from .common import ImportJobStatus, ImportSourceType, PinMediaType, PinStatus
 
-PinTitle = Annotated[str, StringConstraints(max_length=500)]
+PinTitle = Annotated[str, StringConstraints(max_length=100)]
+PinDescription = Annotated[str, StringConstraints(max_length=800)]
+PinAltText = Annotated[str, StringConstraints(max_length=500)]
 IdempotencyKey = Annotated[str, StringConstraints(max_length=255)]
 
 
@@ -19,7 +21,12 @@ class PinCreate(PinbridgeModel):
     account_id: UUID
     board_id: str
     title: PinTitle
-    description: str | None = None
+    description: PinDescription | None = None
+    related_terms: list[str] | None = None
+    alt_text: PinAltText | None = None
+    dominant_color: str | None = None
+    cover_image_url: HttpUrl | None = None
+    cover_image_asset_id: UUID | None = None
     link_url: HttpUrl | None = None
     image_url: HttpUrl | None = None
     asset_id: UUID | None = None
@@ -31,7 +38,53 @@ class PinCreate(PinbridgeModel):
             raise ValueError("Either image_url or asset_id must be provided")
         if self.image_url is not None and self.asset_id is not None:
             raise ValueError("Provide either image_url or asset_id, not both")
+        if self.cover_image_url is not None and self.cover_image_asset_id is not None:
+            raise ValueError("Provide either cover_image_url or cover_image_asset_id, not both")
         return self
+
+    @field_validator("related_terms", mode="before")
+    @classmethod
+    def validate_related_terms(cls, value: list[str] | str | None) -> list[str] | None:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            value = [term.strip() for term in value.split(",")]
+        cleaned = [term.strip() for term in value if isinstance(term, str) and term.strip()]
+        return cleaned or None
+
+    @field_validator("dominant_color")
+    @classmethod
+    def validate_dominant_color(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            return None
+        if not normalized.startswith("#"):
+            normalized = f"#{normalized}"
+        if len(normalized) != 7 or any(
+            char not in "0123456789ABCDEFabcdef" for char in normalized[1:]
+        ):
+            raise ValueError("dominant_color must be a 6-digit hex color (for example #6E7874)")
+        return normalized.upper()
+
+    @field_validator("link_url")
+    @classmethod
+    def validate_link_url_length(cls, value: HttpUrl | None) -> HttpUrl | None:
+        if value is None:
+            return None
+        if len(str(value)) > 2048:
+            raise ValueError("link_url must be <= 2048 characters")
+        return value
+
+    @field_validator("cover_image_url")
+    @classmethod
+    def validate_cover_image_url_length(cls, value: HttpUrl | None) -> HttpUrl | None:
+        if value is None:
+            return None
+        if len(str(value)) > 2048:
+            raise ValueError("cover_image_url must be <= 2048 characters")
+        return value
 
 
 class PinImportCreate(PinCreate):
@@ -57,6 +110,10 @@ class PinResponse(PinbridgeModel):
     media_type: PinMediaType
     title: str
     description: str | None = None
+    related_terms: list[str] | None = None
+    alt_text: str | None = None
+    dominant_color: str | None = None
+    cover_image_url: str | None = None
     link_url: str | None = None
     media_url: str
     image_url: str
