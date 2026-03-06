@@ -46,6 +46,7 @@ from .pins import (
     ImportJobResponse,
     JobStatusResponse,
     PinCreate,
+    PinImportCreate,
     PinResponse,
 )
 from .pinterest import (
@@ -108,6 +109,7 @@ __all__ = [
     "PinMediaType",
     "OAuthStartResponse",
     "PinCreate",
+    "PinImportCreate",
     "PinResponse",
     "PinStatus",
     "BulkPinImportRowResult",

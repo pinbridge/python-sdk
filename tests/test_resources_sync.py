@@ -9,6 +9,7 @@ from _payloads import (
     UUID1,
     UUID3,
     UUID4,
+    action_response,
     api_key_create_response,
     api_key_response,
     asset_response,
@@ -39,12 +40,18 @@ from pinbridge_sdk.models import (
     AssetType,
     BillingCycle,
     BoardCreateRequest,
+    ChangePasswordRequest,
     CheckoutRequest,
+    ForgotPasswordRequest,
+    ImportJobStatus,
+    ImportSourceType,
     LoginRequest,
     PinCreate,
+    PinImportCreate,
     Plan,
     ProfileUpdateRequest,
     RegisterRequest,
+    ResetPasswordRequest,
     ScheduleCreate,
     SwitchProjectRequest,
     WebhookCreate,
@@ -68,13 +75,38 @@ def test_sync_resource_methods_end_to_end() -> None:
 
         if (method, path) == ("POST", "/v1/auth/register"):
             payload = _request_json(request)
+            assert payload["full_name"] == "SDK User"
             assert payload["email"] == "dev@pinbridge.io"
+            assert payload["timezone"] == "UTC"
             return httpx.Response(201, json=auth_response())
 
         if (method, path) == ("POST", "/v1/auth/login"):
             payload = _request_json(request)
             assert payload["password"] == "secret123"
+            assert payload["timezone"] == "UTC"
             return httpx.Response(200, json=auth_response())
+
+        if (method, path) == ("POST", "/v1/auth/forgot-password"):
+            payload = _request_json(request)
+            assert payload["email"] == "dev@pinbridge.io"
+            return httpx.Response(200, json=action_response("Password reset email sent"))
+
+        if (method, path) == ("POST", "/v1/auth/reset-password"):
+            payload = _request_json(request)
+            assert payload["token"] == "t" * 20
+            return httpx.Response(200, json=action_response("Password has been reset"))
+
+        if (method, path) == ("POST", "/v1/auth/change-password"):
+            payload = _request_json(request)
+            assert payload["current_password"] == "secret123"
+            return httpx.Response(200, json=action_response("Password changed"))
+
+        if (method, path) == ("POST", "/v1/auth/email/verify/request"):
+            return httpx.Response(200, json=action_response("Verification requested"))
+
+        if (method, path) == ("GET", "/v1/auth/email/verify"):
+            assert request.url.params["token"] == "v" * 20
+            return httpx.Response(200, json=action_response("Email verified"))
 
         if (method, path) == ("GET", "/v1/auth/me"):
             return httpx.Response(200, json=me_response())
@@ -127,6 +159,9 @@ def test_sync_resource_methods_end_to_end() -> None:
         if (method, path) == ("GET", f"/v1/assets/{UUID3}"):
             return httpx.Response(200, json=asset_response())
 
+        if (method, path) == ("GET", f"/v1/assets/{UUID3}/content"):
+            return httpx.Response(200, content=b"asset-content")
+
         if (method, path) == ("PATCH", f"/v1/api-keys/{UUID3}"):
             payload = _request_json(request)
             assert payload["name"] == "renamed"
@@ -172,6 +207,7 @@ def test_sync_resource_methods_end_to_end() -> None:
         if (method, path) == ("POST", "/v1/pins/imports/json"):
             payload = _request_json(request)
             assert len(payload) == 2
+            assert payload[0]["run_at"] == "2026-02-24T14:00:00Z"
             assert payload[0]["idempotency_key"] == "bulk-json-1"
             return httpx.Response(202, json=import_job_response())
 
@@ -184,6 +220,8 @@ def test_sync_resource_methods_end_to_end() -> None:
             return httpx.Response(202, json=payload)
 
         if (method, path) == ("GET", "/v1/pins/imports"):
+            assert request.url.params["status"] == "completed_with_errors"
+            assert request.url.params["source_type"] == "json"
             return httpx.Response(200, json=[import_job_response()])
 
         if (method, path) == ("GET", f"/v1/pins/imports/{UUID3}"):
@@ -271,12 +309,41 @@ def test_sync_resource_methods_end_to_end() -> None:
     transport = httpx.MockTransport(handler)
     with PinbridgeClient(base_url="https://api.pinbridge.test", transport=transport) as client:
         auth = client.auth.register(
-            RegisterRequest(email="dev@pinbridge.io", password="secret123", workspace_name="SDK")
+            RegisterRequest(
+                full_name="SDK User",
+                email="dev@pinbridge.io",
+                password="secret123",
+                workspace_name="SDK",
+                timezone="UTC",
+            )
         )
         assert auth.workspace.plan == Plan.STARTER
 
-        logged = client.auth.login(LoginRequest(email="dev@pinbridge.io", password="secret123"))
+        logged = client.auth.login(
+            LoginRequest(email="dev@pinbridge.io", password="secret123", timezone="UTC")
+        )
         client.set_bearer_token(logged.access_token)
+        assert (
+            client.auth.forgot_password(ForgotPasswordRequest(email="dev@pinbridge.io")).message
+            == "Password reset email sent"
+        )
+        assert (
+            client.auth.reset_password(
+                ResetPasswordRequest(token="t" * 20, password="secret456")
+            ).message
+            == "Password has been reset"
+        )
+        assert (
+            client.auth.change_password(
+                ChangePasswordRequest(
+                    current_password="secret123",
+                    new_password="secret456",
+                )
+            ).message
+            == "Password changed"
+        )
+        assert client.auth.request_email_verification().message == "Verification requested"
+        assert client.auth.verify_email("v" * 20).message == "Email verified"
 
         assert client.auth.me().workspace.id
         assert client.auth.get_profile().workspace_name == "SDK Workspace"
@@ -311,6 +378,7 @@ def test_sync_resource_methods_end_to_end() -> None:
         )
         assert video_asset.asset_type == AssetType.VIDEO
         assert client.assets.get(UUID3).id
+        assert client.assets.get_content(UUID3) == b"asset-content"
 
         assert client.pinterest.start_oauth().authorization_url
         callback = client.pinterest.oauth_callback(code="abc", state="state")
@@ -342,12 +410,13 @@ def test_sync_resource_methods_end_to_end() -> None:
         assert created_pin.title == "A Pin"
         import_job = client.pins.import_json(
             [
-                PinCreate(
+                PinImportCreate(
                     account_id=UUID4,
                     board_id="123-board",
                     title="Bulk A",
                     image_url="https://example.com/bulk-a.jpg",
                     idempotency_key="bulk-json-1",
+                    run_at=datetime.fromisoformat("2026-02-24T16:00:00+02:00"),
                 ),
                 {
                     "account_id": UUID4,
@@ -368,7 +437,15 @@ def test_sync_resource_methods_end_to_end() -> None:
         )
         assert csv_job.source_filename == "pins.csv"
         assert client.pins.get_import(UUID3).id
-        assert len(client.pins.list_imports()) == 1
+        assert (
+            len(
+                client.pins.list_imports(
+                    status=ImportJobStatus.COMPLETED_WITH_ERRORS,
+                    source_type=ImportSourceType.JSON,
+                )
+            )
+            == 1
+        )
         assert len(client.pins.list(limit=10, offset=2)) == 1
         assert client.pins.get(UUID1).id
         client.pins.delete(UUID1)
@@ -419,6 +496,12 @@ def test_sync_resource_methods_end_to_end() -> None:
     assert ("POST", "/v1/assets/images") in seen
     assert ("POST", "/v1/assets/videos") in seen
     assert ("GET", "/v1/billing/pricing") in seen
+    assert ("POST", "/v1/auth/forgot-password") in seen
+    assert ("POST", "/v1/auth/reset-password") in seen
+    assert ("POST", "/v1/auth/change-password") in seen
+    assert ("POST", "/v1/auth/email/verify/request") in seen
+    assert ("GET", "/v1/auth/email/verify") in seen
+    assert ("GET", f"/v1/assets/{UUID3}/content") in seen
 
 
 def test_sync_oauth_callback_redirect_and_empty_body_branches() -> None:

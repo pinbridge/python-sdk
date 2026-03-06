@@ -21,17 +21,29 @@ def _normalize_upload(
 ) -> tuple[str, bytes, str]:
     if isinstance(file, (bytes, bytearray)):
         resolved_filename = filename or "upload.bin"
-        resolved_content_type = content_type or guess_type(resolved_filename)[0] or "application/octet-stream"
+        resolved_content_type = (
+            content_type
+            or guess_type(resolved_filename)[0]
+            or "application/octet-stream"
+        )
         return resolved_filename, bytes(file), resolved_content_type
 
     if isinstance(file, (str, Path)):
         path = Path(file)
         resolved_filename = filename or path.name
-        resolved_content_type = content_type or guess_type(resolved_filename)[0] or "application/octet-stream"
+        resolved_content_type = (
+            content_type
+            or guess_type(resolved_filename)[0]
+            or "application/octet-stream"
+        )
         return resolved_filename, path.read_bytes(), resolved_content_type
 
     resolved_filename = filename or Path(getattr(file, "name", "upload.bin")).name
-    resolved_content_type = content_type or guess_type(resolved_filename)[0] or "application/octet-stream"
+    resolved_content_type = (
+        content_type
+        or guess_type(resolved_filename)[0]
+        or "application/octet-stream"
+    )
     return resolved_filename, file.read(), resolved_content_type
 
 
@@ -92,6 +104,14 @@ class AssetsResource(SyncAPIResource):
         )
         return self._model(AssetResponse, response)
 
+    def get_content(self, asset_id: UUID | str) -> bytes:
+        response = self._request(
+            "GET",
+            "/v1/assets/{asset_id}/content",
+            path_params={"asset_id": asset_id},
+        )
+        return bytes(response.content)
+
 
 class AsyncAssetsResource(AsyncAPIResource):
     async def _upload(
@@ -149,3 +169,11 @@ class AsyncAssetsResource(AsyncAPIResource):
             path_params={"asset_id": asset_id},
         )
         return self._model(AssetResponse, response)
+
+    async def get_content(self, asset_id: UUID | str) -> bytes:
+        response = await self._request(
+            "GET",
+            "/v1/assets/{asset_id}/content",
+            path_params={"asset_id": asset_id},
+        )
+        return bytes(response.content)

@@ -9,6 +9,7 @@ from _payloads import (
     UUID1,
     UUID3,
     UUID4,
+    action_response,
     api_key_create_response,
     api_key_response,
     asset_response,
@@ -39,12 +40,18 @@ from pinbridge_sdk.models import (
     AssetType,
     BillingCycle,
     BoardCreateRequest,
+    ChangePasswordRequest,
     CheckoutRequest,
+    ForgotPasswordRequest,
+    ImportJobStatus,
+    ImportSourceType,
     LoginRequest,
     PinCreate,
+    PinImportCreate,
     Plan,
     ProfileUpdateRequest,
     RegisterRequest,
+    ResetPasswordRequest,
     ScheduleCreate,
     SwitchProjectRequest,
     WebhookCreate,
@@ -67,9 +74,31 @@ async def test_async_resource_methods_end_to_end() -> None:
         seen.append((method, path))
 
         if (method, path) == ("POST", "/v1/auth/register"):
+            payload = _request_json(request)
+            assert payload["full_name"] == "SDK User"
+            assert payload["timezone"] == "UTC"
             return httpx.Response(201, json=auth_response())
         if (method, path) == ("POST", "/v1/auth/login"):
+            payload = _request_json(request)
+            assert payload["timezone"] == "UTC"
             return httpx.Response(200, json=auth_response())
+        if (method, path) == ("POST", "/v1/auth/forgot-password"):
+            payload = _request_json(request)
+            assert payload["email"] == "dev@pinbridge.io"
+            return httpx.Response(200, json=action_response("Password reset email sent"))
+        if (method, path) == ("POST", "/v1/auth/reset-password"):
+            payload = _request_json(request)
+            assert payload["token"] == "t" * 20
+            return httpx.Response(200, json=action_response("Password has been reset"))
+        if (method, path) == ("POST", "/v1/auth/change-password"):
+            payload = _request_json(request)
+            assert payload["current_password"] == "secret123"
+            return httpx.Response(200, json=action_response("Password changed"))
+        if (method, path) == ("POST", "/v1/auth/email/verify/request"):
+            return httpx.Response(200, json=action_response("Verification requested"))
+        if (method, path) == ("GET", "/v1/auth/email/verify"):
+            assert request.url.params["token"] == "v" * 20
+            return httpx.Response(200, json=action_response("Email verified"))
         if (method, path) == ("GET", "/v1/auth/me"):
             return httpx.Response(200, json=me_response())
         if (method, path) == ("GET", "/v1/auth/profile"):
@@ -114,6 +143,8 @@ async def test_async_resource_methods_end_to_end() -> None:
             return httpx.Response(201, json=payload)
         if (method, path) == ("GET", f"/v1/assets/{UUID3}"):
             return httpx.Response(200, json=asset_response())
+        if (method, path) == ("GET", f"/v1/assets/{UUID3}/content"):
+            return httpx.Response(200, content=b"asset-content")
 
         if (method, path) == ("GET", "/v1/pinterest/oauth/start"):
             return httpx.Response(200, json={"authorization_url": "https://pinterest.example/auth"})
@@ -137,6 +168,7 @@ async def test_async_resource_methods_end_to_end() -> None:
         if (method, path) == ("POST", "/v1/pins/imports/json"):
             payload = _request_json(request)
             assert len(payload) == 2
+            assert payload[0]["run_at"] == "2026-02-24T14:00:00Z"
             return httpx.Response(202, json=import_job_response())
         if (method, path) == ("POST", "/v1/pins/imports/csv"):
             assert b"account_id,board_id,title" in request.content
@@ -145,6 +177,8 @@ async def test_async_resource_methods_end_to_end() -> None:
             payload["source_filename"] = "pins.csv"
             return httpx.Response(202, json=payload)
         if (method, path) == ("GET", "/v1/pins/imports"):
+            assert request.url.params["status"] == "completed_with_errors"
+            assert request.url.params["source_type"] == "json"
             return httpx.Response(200, json=[import_job_response()])
         if (method, path) == ("GET", f"/v1/pins/imports/{UUID3}"):
             return httpx.Response(200, json=import_job_response())
@@ -205,11 +239,44 @@ async def test_async_resource_methods_end_to_end() -> None:
     async with AsyncPinbridgeClient(
         base_url="https://api.pinbridge.test", transport=transport
     ) as client:
-        await client.auth.register(RegisterRequest(email="dev@pinbridge.io", password="secret123"))
+        await client.auth.register(
+            RegisterRequest(
+                full_name="SDK User",
+                email="dev@pinbridge.io",
+                password="secret123",
+                timezone="UTC",
+            )
+        )
         logged = await client.auth.login(
-            LoginRequest(email="dev@pinbridge.io", password="secret123")
+            LoginRequest(email="dev@pinbridge.io", password="secret123", timezone="UTC")
         )
         client.set_bearer_token(logged.access_token)
+        assert (
+            (await client.auth.forgot_password(ForgotPasswordRequest(email="dev@pinbridge.io")))
+            .message
+            == "Password reset email sent"
+        )
+        assert (
+            (
+                await client.auth.reset_password(
+                    ResetPasswordRequest(token="t" * 20, password="secret456")
+                )
+            ).message
+            == "Password has been reset"
+        )
+        assert (
+            (
+                await client.auth.change_password(
+                    ChangePasswordRequest(
+                        current_password="secret123",
+                        new_password="secret456",
+                    )
+                )
+            ).message
+            == "Password changed"
+        )
+        assert (await client.auth.request_email_verification()).message == "Verification requested"
+        assert (await client.auth.verify_email("v" * 20)).message == "Email verified"
         await client.auth.me()
         await client.auth.get_profile()
         await client.auth.update_profile(ProfileUpdateRequest(workspace_name="New Name"))
@@ -237,6 +304,7 @@ async def test_async_resource_methods_end_to_end() -> None:
         )
         assert video_asset.asset_type == AssetType.VIDEO
         assert (await client.assets.get(UUID3)).id
+        assert await client.assets.get_content(UUID3) == b"asset-content"
 
         await client.pinterest.start_oauth()
         callback = await client.pinterest.oauth_callback(code="abc", state="state")
@@ -262,12 +330,13 @@ async def test_async_resource_methods_end_to_end() -> None:
         )
         await client.pins.import_json(
             [
-                PinCreate(
+                PinImportCreate(
                     account_id=UUID4,
                     board_id="123-board",
                     title="Bulk A",
                     image_url="https://example.com/bulk-a.jpg",
                     idempotency_key="bulk-json-1",
+                    run_at=datetime.fromisoformat("2026-02-24T16:00:00+02:00"),
                 ),
                 {
                     "account_id": UUID4,
@@ -286,7 +355,10 @@ async def test_async_resource_methods_end_to_end() -> None:
             filename="pins.csv",
         )
         await client.pins.get_import(UUID3)
-        await client.pins.list_imports()
+        await client.pins.list_imports(
+            status=ImportJobStatus.COMPLETED_WITH_ERRORS,
+            source_type=ImportSourceType.JSON,
+        )
         await client.pins.list(limit=10, offset=2)
         await client.pins.get(UUID1)
         await client.pins.delete(UUID1)
@@ -334,6 +406,12 @@ async def test_async_resource_methods_end_to_end() -> None:
     assert ("POST", "/v1/webhooks") in seen
     assert ("POST", "/v1/assets/videos") in seen
     assert ("GET", "/v1/auth/me") in seen
+    assert ("POST", "/v1/auth/forgot-password") in seen
+    assert ("POST", "/v1/auth/reset-password") in seen
+    assert ("POST", "/v1/auth/change-password") in seen
+    assert ("POST", "/v1/auth/email/verify/request") in seen
+    assert ("GET", "/v1/auth/email/verify") in seen
+    assert ("GET", f"/v1/assets/{UUID3}/content") in seen
 
 
 async def test_async_oauth_callback_redirect_and_empty_body_branches() -> None:

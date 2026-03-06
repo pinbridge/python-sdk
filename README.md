@@ -110,6 +110,11 @@ print(ready.status, ready.database)
 
 - `register(RegisterRequest | dict)`
 - `login(LoginRequest | dict)`
+- `forgot_password(ForgotPasswordRequest | dict)`
+- `reset_password(ResetPasswordRequest | dict)`
+- `change_password(ChangePasswordRequest | dict)`
+- `request_email_verification()`
+- `verify_email(token=...)`
 - `me()`
 - `get_profile()`
 - `update_profile(ProfileUpdateRequest | dict)`
@@ -165,18 +170,19 @@ client.set_bearer_token(switched.access_token)
 - `client.assets.upload_image(file, filename=..., content_type=...)`
 - `client.assets.upload_video(file, filename=..., content_type=...)`
 - `client.assets.get(asset_id)`
+- `client.assets.get_content(asset_id)`
 - `client.pins.create(PinCreate | dict)`
-- `client.pins.import_json(list[PinCreate | dict])`
+- `client.pins.import_json(list[PinImportCreate | PinCreate | dict])`
 - `client.pins.import_csv(file, filename=..., content_type=...)`
 - `client.pins.get_import(job_id)`
-- `client.pins.list_imports(limit=50, offset=0)`
+- `client.pins.list_imports(limit=50, offset=0, status=None, source_type=None)`
 - `client.pins.get(pin_id)`
 - `client.pins.list(limit=50, offset=0)`
 - `client.pins.delete(pin_id)`
 - `client.jobs.get(job_id)`
 
 ```python
-from pinbridge_sdk.models import PinCreate
+from pinbridge_sdk.models import PinCreate, PinImportCreate
 
 asset = client.assets.upload_image(
     "./pin-image.png",
@@ -218,12 +224,13 @@ print(video_pin.media_type.value, video_pin.media_url)
 ```python
 import_job = client.pins.import_json(
     [
-        PinCreate(
+        PinImportCreate(
             account_id="...",
             board_id="...",
             title="Bulk one",
             image_url="https://example.com/bulk-1.jpg",
             idempotency_key="bulk-json-1",
+            run_at="2026-03-06T10:00:00Z",  # optional: omit for immediate queueing
         ),
         {
             "account_id": "...",
@@ -237,6 +244,9 @@ import_job = client.pins.import_json(
 print(import_job.status.value)
 print(client.pins.get_import(import_job.id).processed_rows)
 ```
+
+For scheduled publishing fields (`run_at` on schedules/import rows), send absolute ISO 8601
+timestamps with an explicit timezone offset (for example `2026-03-06T10:00:00Z`).
 
 ### Schedules (`client.schedules`)
 

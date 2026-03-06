@@ -12,13 +12,21 @@ def auth_response() -> dict:
         "id": UUID2,
         "name": "SDK Workspace",
         "environment": "production",
+        "timezone": "UTC",
         "plan": "starter",
     }
     return {
         "access_token": "jwt-token",
         "token_type": "bearer",
         "expires_in": 3600,
-        "user": {"id": UUID1, "email": "dev@pinbridge.io", "full_name": None, "created_at": TS},
+        "user": {
+            "id": UUID1,
+            "email": "dev@pinbridge.io",
+            "full_name": None,
+            "timezone": "UTC",
+            "email_verified": True,
+            "created_at": TS,
+        },
         "organization": {"id": UUID3, "name": "SDK Org"},
         "active_project": workspace,
         "projects": [workspace],
@@ -86,6 +94,10 @@ def profile_response() -> dict:
         "address_postal_code": None,
         "address_country": None,
     }
+
+
+def action_response(message: str = "ok") -> dict:
+    return {"message": message}
 
 
 def api_key_response() -> dict:
@@ -181,6 +193,7 @@ def import_job_response() -> dict:
                 "row_number": 1,
                 "status": "created",
                 "pin_id": UUID1,
+                "schedule_id": None,
                 "idempotency_key": "bulk-1",
                 "error_code": None,
                 "error_message": None,
@@ -189,6 +202,7 @@ def import_job_response() -> dict:
                 "row_number": 2,
                 "status": "failed",
                 "pin_id": None,
+                "schedule_id": None,
                 "idempotency_key": "bulk-2",
                 "error_code": "validation_error",
                 "error_message": "board_id: Field required",
@@ -252,6 +266,8 @@ def pricing_catalog_response() -> dict:
                 "monthly_overage": None,
                 "quota_calls_monthly": 1000,
                 "pinterest_accounts_limit": 2,
+                "uploaded_media_assets": True,
+                "bulk_imports": True,
                 "overage_billing_threshold_pins": 100,
                 "monthly_price": {
                     "billing_cycle": "monthly",
@@ -273,6 +289,7 @@ def pricing_catalog_response() -> dict:
 def billing_status_response() -> dict:
     return {
         "plan": "starter",
+        "billing_cycle": "monthly",
         "billing_status": "active",
         "current_period_start": TS,
         "current_period_end": TS,
@@ -282,6 +299,8 @@ def billing_status_response() -> dict:
         "overage_pins_used": 0,
         "quota_reset_at": TS,
         "pinterest_accounts_limit": 2,
+        "uploaded_media_assets": True,
+        "bulk_imports": True,
         "overage_billing_threshold_pins": 100,
     }
 

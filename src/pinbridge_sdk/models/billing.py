@@ -23,6 +23,7 @@ class PortalResponse(PinbridgeModel):
 
 class BillingStatusResponse(PinbridgeModel):
     plan: Plan
+    billing_cycle: BillingCycle | None = None
     billing_status: BillingStatus
     current_period_start: datetime | None = None
     current_period_end: datetime | None = None
@@ -32,6 +33,8 @@ class BillingStatusResponse(PinbridgeModel):
     overage_pins_used: int
     quota_reset_at: datetime | None = None
     pinterest_accounts_limit: int
+    uploaded_media_assets: bool
+    bulk_imports: bool
     overage_billing_threshold_pins: int | None = None
 
 
@@ -51,6 +54,8 @@ class PricingPlanResponse(PinbridgeModel):
     monthly_overage: str | None = None
     quota_calls_monthly: int
     pinterest_accounts_limit: int
+    uploaded_media_assets: bool
+    bulk_imports: bool
     overage_billing_threshold_pins: int | None = None
     monthly_price: PricingAmountResponse
     annual_price: PricingAmountResponse
