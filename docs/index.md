@@ -9,7 +9,7 @@ synchronous and asynchronous clients, and resource groups that mirror the API su
 pip install pinbridge-sdk
 ```
 
-For local development from this monorepo:
+For local development from source:
 
 ```bash
 pip install -e .[dev]

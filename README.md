@@ -12,7 +12,7 @@ directory for a local docs site.
 pip install pinbridge-sdk
 ```
 
-For local development from this monorepo:
+For local development from source:
 
 ```bash
 pip install -e .[dev]
@@ -38,7 +38,7 @@ client = PinbridgeClient(
 )
 ```
 
-Use as a context manager to close internal HTTP resources automatically:
+Use as a context manager to close HTTP resources automatically:
 
 ```python
 with PinbridgeClient(api_key="pb_live_...") as client:
