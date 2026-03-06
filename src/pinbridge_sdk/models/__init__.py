@@ -7,11 +7,16 @@ from .auth import (
     AuthResponse,
     AuthUserResponse,
     AuthWorkspaceResponse,
+    ChangePasswordRequest,
+    EmailVerificationActionResponse,
+    ForgotPasswordRequest,
     LoginRequest,
     MeResponse,
+    PasswordResetActionResponse,
     ProfileResponse,
     ProfileUpdateRequest,
     RegisterRequest,
+    ResetPasswordRequest,
 )
 from .base import PinbridgeModel
 from .billing import (
@@ -36,7 +41,13 @@ from .common import (
     ValidationErrorItem,
     WorkspaceEnvironment,
 )
-from .pins import BulkPinImportRowResult, ImportJobResponse, JobStatusResponse, PinCreate, PinResponse
+from .pins import (
+    BulkPinImportRowResult,
+    ImportJobResponse,
+    JobStatusResponse,
+    PinCreate,
+    PinResponse,
+)
 from .pinterest import (
     BoardCreateRequest,
     BoardResponse,
@@ -77,10 +88,13 @@ __all__ = [
     "BillingCycle",
     "BillingStatus",
     "BillingStatusResponse",
+    "ChangePasswordRequest",
     "BoardCreateRequest",
     "BoardResponse",
     "CheckoutRequest",
     "CheckoutResponse",
+    "EmailVerificationActionResponse",
+    "ForgotPasswordRequest",
     "HealthResponse",
     "HTTPValidationError",
     "ImportJobResponse",
@@ -89,6 +103,7 @@ __all__ = [
     "JobStatusResponse",
     "LoginRequest",
     "MeResponse",
+    "PasswordResetActionResponse",
     "OAuthCallbackResponse",
     "PinMediaType",
     "OAuthStartResponse",
@@ -113,6 +128,7 @@ __all__ = [
     "RateMeterResponse",
     "ReadinessResponse",
     "RegisterRequest",
+    "ResetPasswordRequest",
     "RootResponse",
     "ScheduleCreate",
     "ScheduleResponse",
