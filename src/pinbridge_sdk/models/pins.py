@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Annotated
 from uuid import UUID
 
@@ -46,7 +46,7 @@ class PinImportCreate(PinCreate):
             raise ValueError(
                 "run_at must include a timezone offset (for example 2026-03-06T10:00:00Z)"
             )
-        return value.astimezone(UTC)
+        return value.astimezone(timezone.utc)
 
 
 class PinResponse(PinbridgeModel):
