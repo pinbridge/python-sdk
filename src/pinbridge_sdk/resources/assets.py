@@ -22,9 +22,7 @@ def _normalize_upload(
     if isinstance(file, (bytes, bytearray)):
         resolved_filename = filename or "upload.bin"
         resolved_content_type = (
-            content_type
-            or guess_type(resolved_filename)[0]
-            or "application/octet-stream"
+            content_type or guess_type(resolved_filename)[0] or "application/octet-stream"
         )
         return resolved_filename, bytes(file), resolved_content_type
 
@@ -32,17 +30,13 @@ def _normalize_upload(
         path = Path(file)
         resolved_filename = filename or path.name
         resolved_content_type = (
-            content_type
-            or guess_type(resolved_filename)[0]
-            or "application/octet-stream"
+            content_type or guess_type(resolved_filename)[0] or "application/octet-stream"
         )
         return resolved_filename, path.read_bytes(), resolved_content_type
 
     resolved_filename = filename or Path(getattr(file, "name", "upload.bin")).name
     resolved_content_type = (
-        content_type
-        or guess_type(resolved_filename)[0]
-        or "application/octet-stream"
+        content_type or guess_type(resolved_filename)[0] or "application/octet-stream"
     )
     return resolved_filename, file.read(), resolved_content_type
 

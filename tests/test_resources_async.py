@@ -252,29 +252,21 @@ async def test_async_resource_methods_end_to_end() -> None:
         )
         client.set_bearer_token(logged.access_token)
         assert (
-            (await client.auth.forgot_password(ForgotPasswordRequest(email="dev@pinbridge.io")))
-            .message
-            == "Password reset email sent"
-        )
+            await client.auth.forgot_password(ForgotPasswordRequest(email="dev@pinbridge.io"))
+        ).message == "Password reset email sent"
         assert (
-            (
-                await client.auth.reset_password(
-                    ResetPasswordRequest(token="t" * 20, password="secret456")
-                )
-            ).message
-            == "Password has been reset"
-        )
+            await client.auth.reset_password(
+                ResetPasswordRequest(token="t" * 20, password="secret456")
+            )
+        ).message == "Password has been reset"
         assert (
-            (
-                await client.auth.change_password(
-                    ChangePasswordRequest(
-                        current_password="secret123",
-                        new_password="secret456",
-                    )
+            await client.auth.change_password(
+                ChangePasswordRequest(
+                    current_password="secret123",
+                    new_password="secret456",
                 )
-            ).message
-            == "Password changed"
-        )
+            )
+        ).message == "Password changed"
         assert (await client.auth.request_email_verification()).message == "Verification requested"
         assert (await client.auth.verify_email("v" * 20)).message == "Email verified"
         await client.auth.me()
