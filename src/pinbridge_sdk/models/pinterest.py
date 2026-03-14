@@ -47,3 +47,15 @@ class BoardCreateRequest(PinbridgeModel):
     name: BoardName
     description: str | None = None
     privacy: str | None = None
+
+
+class RelatedTermsItem(PinbridgeModel):
+    term: str
+    related_terms: list[str]
+
+
+class RelatedTermsResponse(PinbridgeModel):
+    id: str
+    related_term_count: int
+    related_terms_list: list[RelatedTermsItem]
+    exact_match: bool = False

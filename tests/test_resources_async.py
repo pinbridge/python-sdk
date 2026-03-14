@@ -28,6 +28,7 @@ from _payloads import (
     projects_context_response,
     rate_meter_response,
     readiness_response,
+    related_terms_response,
     root_response,
     schedule_response,
     webhook_response,
@@ -158,6 +159,13 @@ async def test_async_resource_methods_end_to_end() -> None:
             return httpx.Response(204)
         if (method, path) == ("GET", "/v1/pinterest/boards"):
             return httpx.Response(200, json=[board_response()])
+        if (method, path) == ("GET", "/v1/pinterest/terms/related"):
+            assert request.url.params.get_list("terms") == ["workout", "yoga"]
+            assert request.url.params["account_id"] == UUID4
+            assert request.url.params["exact_match"] == "true"
+            payload = related_terms_response()
+            payload["exact_match"] = True
+            return httpx.Response(200, json=payload)
         if (method, path) == ("POST", "/v1/pinterest/boards"):
             return httpx.Response(201, json=board_response())
         if (method, path) == ("DELETE", "/v1/pinterest/boards/board-1"):
@@ -310,6 +318,13 @@ async def test_async_resource_methods_end_to_end() -> None:
         await client.pinterest.list_accounts()
         await client.pinterest.revoke_account(UUID4)
         await client.pinterest.list_boards(UUID4)
+        related_terms = await client.pinterest.list_related_terms(
+            UUID4,
+            "workout, yoga ,workout",
+            exact_match=True,
+        )
+        assert related_terms.related_term_count == 3
+        assert related_terms.exact_match is True
         await client.pinterest.create_board(
             BoardCreateRequest(account_id=UUID4, name="SDK Board", description=None, privacy=None)
         )

@@ -147,6 +147,7 @@ print(ready.status, ready.database)
 - `list_accounts()`
 - `revoke_account(account_id)`
 - `list_boards(account_id)`
+- `list_related_terms(account_id, terms, exact_match=False)`
 - `create_board(BoardCreateRequest | dict)`
 - `delete_board(board_id, account_id=...)`
 
@@ -155,9 +156,15 @@ from pinbridge_sdk.models import BoardCreateRequest
 
 accounts = client.pinterest.list_accounts()
 boards = client.pinterest.list_boards(accounts[0].id)
+related = client.pinterest.list_related_terms(
+    accounts[0].id,
+    ["workout", "yoga"],
+    exact_match=True,
+)
 created = client.pinterest.create_board(
     BoardCreateRequest(account_id=accounts[0].id, name="SDK Board")
 )
+print(related.related_terms_list[0].related_terms)
 ```
 
 ### Projects (`client.projects`)

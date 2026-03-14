@@ -139,6 +139,24 @@ def board_response() -> dict:
     }
 
 
+def related_terms_response() -> dict:
+    return {
+        "id": "workout",
+        "related_term_count": 3,
+        "related_terms_list": [
+            {
+                "term": "workout",
+                "related_terms": ["home workout", "gym workout"],
+            },
+            {
+                "term": "yoga",
+                "related_terms": ["morning yoga"],
+            },
+        ],
+        "exact_match": False,
+    }
+
+
 def pin_response() -> dict:
     return {
         "id": UUID1,

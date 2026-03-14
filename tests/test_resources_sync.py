@@ -28,6 +28,7 @@ from _payloads import (
     projects_context_response,
     rate_meter_response,
     readiness_response,
+    related_terms_response,
     root_response,
     schedule_response,
     webhook_response,
@@ -189,6 +190,14 @@ def test_sync_resource_methods_end_to_end() -> None:
         if (method, path) == ("GET", "/v1/pinterest/boards"):
             assert request.url.params["account_id"] == UUID4
             return httpx.Response(200, json=[board_response()])
+
+        if (method, path) == ("GET", "/v1/pinterest/terms/related"):
+            assert request.url.params.get_list("terms") == ["workout", "yoga"]
+            assert request.url.params["account_id"] == UUID4
+            assert request.url.params["exact_match"] == "true"
+            payload = related_terms_response()
+            payload["exact_match"] = True
+            return httpx.Response(200, json=payload)
 
         if (method, path) == ("POST", "/v1/pinterest/boards"):
             payload = _request_json(request)
@@ -390,6 +399,13 @@ def test_sync_resource_methods_end_to_end() -> None:
         assert len(client.pinterest.list_accounts()) == 1
         client.pinterest.revoke_account(UUID4)
         assert len(client.pinterest.list_boards(UUID4)) == 1
+        related_terms = client.pinterest.list_related_terms(
+            UUID4,
+            ["workout", " yoga ", "workout"],
+            exact_match=True,
+        )
+        assert related_terms.related_term_count == 3
+        assert related_terms.exact_match is True
         assert (
             client.pinterest.create_board(
                 BoardCreateRequest(

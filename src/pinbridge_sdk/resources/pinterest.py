@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 from uuid import UUID
 
@@ -14,8 +14,31 @@ from ..models.pinterest import (
     OAuthCallbackResponse,
     OAuthStartResponse,
     PinterestAccountResponse,
+    RelatedTermsResponse,
 )
 from .base import AsyncAPIResource, SyncAPIResource
+
+
+def _normalize_terms_input(terms: str | Sequence[str]) -> list[str]:
+    normalized_terms: list[str] = []
+    seen: set[str] = set()
+
+    raw_values = [terms] if isinstance(terms, str) else list(terms)
+    for raw_value in raw_values:
+        for segment in raw_value.split(","):
+            cleaned = " ".join(segment.strip().split())
+            if not cleaned:
+                continue
+            dedupe_key = cleaned.casefold()
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            normalized_terms.append(cleaned)
+
+    if not normalized_terms:
+        raise ValueError("At least one terms value is required")
+
+    return normalized_terms
 
 
 class PinterestResource(SyncAPIResource):
@@ -58,6 +81,24 @@ class PinterestResource(SyncAPIResource):
             "GET", "/v1/pinterest/boards", params={"account_id": str(account_id)}
         )
         return self._list(BoardResponse, response)
+
+    def list_related_terms(
+        self,
+        account_id: UUID | str,
+        terms: str | Sequence[str],
+        *,
+        exact_match: bool = False,
+    ) -> RelatedTermsResponse:
+        response = self._request(
+            "GET",
+            "/v1/pinterest/terms/related",
+            params={
+                "account_id": str(account_id),
+                "terms": _normalize_terms_input(terms),
+                "exact_match": exact_match,
+            },
+        )
+        return self._model(RelatedTermsResponse, response)
 
     def create_board(self, data: BoardCreateRequest | Mapping[str, Any]) -> BoardResponse:
         payload = (
@@ -119,6 +160,24 @@ class AsyncPinterestResource(AsyncAPIResource):
             params={"account_id": str(account_id)},
         )
         return self._list(BoardResponse, response)
+
+    async def list_related_terms(
+        self,
+        account_id: UUID | str,
+        terms: str | Sequence[str],
+        *,
+        exact_match: bool = False,
+    ) -> RelatedTermsResponse:
+        response = await self._request(
+            "GET",
+            "/v1/pinterest/terms/related",
+            params={
+                "account_id": str(account_id),
+                "terms": _normalize_terms_input(terms),
+                "exact_match": exact_match,
+            },
+        )
+        return self._model(RelatedTermsResponse, response)
 
     async def create_board(self, data: BoardCreateRequest | Mapping[str, Any]) -> BoardResponse:
         payload = (

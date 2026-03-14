@@ -55,6 +55,8 @@ from .pinterest import (
     OAuthCallbackResponse,
     OAuthStartResponse,
     PinterestAccountResponse,
+    RelatedTermsItem,
+    RelatedTermsResponse,
 )
 from .projects import (
     CreateSandboxProjectRequest,
@@ -129,6 +131,8 @@ __all__ = [
     "RateMeterNode",
     "RateMeterResponse",
     "ReadinessResponse",
+    "RelatedTermsItem",
+    "RelatedTermsResponse",
     "RegisterRequest",
     "ResetPasswordRequest",
     "RootResponse",
