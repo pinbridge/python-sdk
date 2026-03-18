@@ -291,6 +291,7 @@ def pricing_catalog_response() -> dict:
                 "pinterest_accounts_limit": 2,
                 "uploaded_media_assets": True,
                 "bulk_imports": True,
+                "activity_log_retention_days": 30,
                 "overage_billing_threshold_pins": 100,
                 "monthly_price": {
                     "billing_cycle": "monthly",

@@ -1,5 +1,6 @@
 """Resource groups exposed by clients."""
 
+from .activity_logs import ActivityLogsResource, AsyncActivityLogsResource
 from .api_keys import APIKeysResource, AsyncAPIKeysResource
 from .assets import AssetsResource, AsyncAssetsResource
 from .auth import AsyncAuthResource, AuthResource
@@ -17,6 +18,8 @@ from .system import AsyncSystemResource, SystemResource
 from .webhooks import AsyncWebhooksResource, WebhooksResource
 
 __all__ = [
+    "ActivityLogsResource",
+    "AsyncActivityLogsResource",
     "APIKeysResource",
     "AsyncAPIKeysResource",
     "AssetsResource",

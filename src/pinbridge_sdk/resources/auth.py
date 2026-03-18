@@ -13,6 +13,9 @@ from ..models.auth import (
     LoginRequest,
     MeResponse,
     PasswordResetActionResponse,
+    PrimaryEmailChangeActionResponse,
+    PrimaryEmailChangeRequest,
+    PrimaryEmailChangeRequestResponse,
     ProfileResponse,
     ProfileUpdateRequest,
     RegisterRequest,
@@ -71,6 +74,17 @@ class AuthResource(SyncAPIResource):
         response = self._request("GET", "/v1/auth/email/verify", params={"token": token})
         return self._model(EmailVerificationActionResponse, response)
 
+    def request_email_change(
+        self, data: PrimaryEmailChangeRequest | Mapping[str, Any]
+    ) -> PrimaryEmailChangeRequestResponse:
+        payload = _serialize_payload(data)
+        response = self._request("POST", "/v1/auth/email/change/request", json=payload)
+        return self._model(PrimaryEmailChangeRequestResponse, response)
+
+    def confirm_email_change(self, token: str) -> PrimaryEmailChangeActionResponse:
+        response = self._request("GET", "/v1/auth/email/change/confirm", params={"token": token})
+        return self._model(PrimaryEmailChangeActionResponse, response)
+
     def me(self) -> MeResponse:
         response = self._request("GET", "/v1/auth/me")
         return self._model(MeResponse, response)
@@ -128,6 +142,19 @@ class AsyncAuthResource(AsyncAPIResource):
     async def verify_email(self, token: str) -> EmailVerificationActionResponse:
         response = await self._request("GET", "/v1/auth/email/verify", params={"token": token})
         return self._model(EmailVerificationActionResponse, response)
+
+    async def request_email_change(
+        self, data: PrimaryEmailChangeRequest | Mapping[str, Any]
+    ) -> PrimaryEmailChangeRequestResponse:
+        payload = _serialize_payload(data)
+        response = await self._request("POST", "/v1/auth/email/change/request", json=payload)
+        return self._model(PrimaryEmailChangeRequestResponse, response)
+
+    async def confirm_email_change(self, token: str) -> PrimaryEmailChangeActionResponse:
+        response = await self._request(
+            "GET", "/v1/auth/email/change/confirm", params={"token": token}
+        )
+        return self._model(PrimaryEmailChangeActionResponse, response)
 
     async def me(self) -> MeResponse:
         response = await self._request("GET", "/v1/auth/me")

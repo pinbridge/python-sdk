@@ -25,6 +25,9 @@ class BillingStatusResponse(PinbridgeModel):
     plan: Plan
     billing_cycle: BillingCycle | None = None
     billing_status: BillingStatus
+    trial_active: bool = False
+    trial_ends_at: datetime | None = None
+    allowed_trial_overage: int = 0
     current_period_start: datetime | None = None
     current_period_end: datetime | None = None
     subscription_cancel_at: datetime | None = None
@@ -56,6 +59,7 @@ class PricingPlanResponse(PinbridgeModel):
     pinterest_accounts_limit: int
     uploaded_media_assets: bool
     bulk_imports: bool
+    activity_log_retention_days: int
     overage_billing_threshold_pins: int | None = None
     monthly_price: PricingAmountResponse
     annual_price: PricingAmountResponse

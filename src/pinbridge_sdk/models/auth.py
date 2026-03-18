@@ -90,6 +90,7 @@ class PasswordResetActionResponse(PinbridgeModel):
 
 class EmailVerificationActionResponse(PinbridgeModel):
     message: str
+    retry_after_seconds: int | None = None
 
 
 class AuthUserResponse(PinbridgeModel):
@@ -133,9 +134,28 @@ class MeResponse(PinbridgeModel):
     workspace: AuthWorkspaceResponse
 
 
+class PrimaryEmailChangeRequest(PinbridgeModel):
+    new_email: EmailValue
+
+
+class PrimaryEmailChangeRequestResponse(PinbridgeModel):
+    message: str
+    pending_email: EmailValue
+    requested_at: datetime
+    retry_after_seconds: int | None = None
+
+
+class PrimaryEmailChangeActionResponse(PinbridgeModel):
+    message: str
+    new_email: EmailValue
+    requires_reauthentication: bool = False
+
+
 class ProfileResponse(PinbridgeModel):
     full_name: str | None = None
     email: EmailValue
+    pending_email_change_to: EmailValue | None = None
+    pending_email_change_requested_at: datetime | None = None
     workspace_name: str
     company_name: str | None = None
     company_website: str | None = None

@@ -12,6 +12,7 @@ from ._types import HeadersLike, PathValue, RequestData, RequestFiles, RequestJs
 from ._version import __version__
 from .errors import map_api_error
 from .resources import (
+    ActivityLogsResource,
     APIKeysResource,
     AssetsResource,
     AuthResource,
@@ -37,6 +38,7 @@ class PinbridgeClient:
     DEFAULT_TIMEOUT = 30.0
 
     _builtin_resource_classes: dict[str, ResourceClass] = {
+        "activity_logs": ActivityLogsResource,
         "system": SystemResource,
         "auth": AuthResource,
         "api_keys": APIKeysResource,

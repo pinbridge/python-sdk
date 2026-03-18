@@ -1,5 +1,12 @@
 """Typed request/response models for PinBridge APIs."""
 
+from .activity_logs import (
+    ActivityLogActorType,
+    ActivityLogCategory,
+    ActivityLogListResponse,
+    ActivityLogResponse,
+    ActivityLogStatus,
+)
 from .api_keys import APIKeyCreate, APIKeyCreateResponse, APIKeyResponse, APIKeyUpdate
 from .assets import AssetResponse, AssetType
 from .auth import (
@@ -13,6 +20,9 @@ from .auth import (
     LoginRequest,
     MeResponse,
     PasswordResetActionResponse,
+    PrimaryEmailChangeActionResponse,
+    PrimaryEmailChangeRequest,
+    PrimaryEmailChangeRequestResponse,
     ProfileResponse,
     ProfileUpdateRequest,
     RegisterRequest,
@@ -78,6 +88,11 @@ from .system import (
 from .webhooks import WebhookCreate, WebhookDeliveryResponse, WebhookResponse, WebhookUpdate
 
 __all__ = [
+    "ActivityLogActorType",
+    "ActivityLogCategory",
+    "ActivityLogListResponse",
+    "ActivityLogResponse",
+    "ActivityLogStatus",
     "APIKeyCreate",
     "APIKeyCreateResponse",
     "APIKeyResponse",
@@ -107,6 +122,9 @@ __all__ = [
     "LoginRequest",
     "MeResponse",
     "PasswordResetActionResponse",
+    "PrimaryEmailChangeActionResponse",
+    "PrimaryEmailChangeRequest",
+    "PrimaryEmailChangeRequestResponse",
     "OAuthCallbackResponse",
     "PinMediaType",
     "OAuthStartResponse",

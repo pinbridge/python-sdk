@@ -12,6 +12,7 @@ from ._types import HeadersLike, PathValue, RequestData, RequestFiles, RequestJs
 from ._version import __version__
 from .errors import map_api_error
 from .resources import (
+    AsyncActivityLogsResource,
     AsyncAPIKeysResource,
     AsyncAssetsResource,
     AsyncAuthResource,
@@ -37,6 +38,7 @@ class AsyncPinbridgeClient:
     DEFAULT_TIMEOUT = 30.0
 
     _builtin_resource_classes: dict[str, AsyncResourceClass] = {
+        "activity_logs": AsyncActivityLogsResource,
         "system": AsyncSystemResource,
         "auth": AsyncAuthResource,
         "api_keys": AsyncAPIKeysResource,
