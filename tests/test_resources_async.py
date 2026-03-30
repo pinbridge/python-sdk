@@ -10,6 +10,7 @@ from _payloads import (
     UUID3,
     UUID4,
     action_response,
+    activity_log_list_response,
     api_key_create_response,
     api_key_response,
     asset_response,
@@ -238,6 +239,10 @@ async def test_async_resource_methods_end_to_end() -> None:
         if (method, path) == ("GET", "/v1/billing/status"):
             return httpx.Response(200, json=billing_status_response())
 
+        if (method, path) == ("GET", "/v1/activity-logs"):
+            assert int(request.url.params.get("limit", 50)) <= 200
+            return httpx.Response(200, json=activity_log_list_response())
+
         if (method, path) == ("GET", "/"):
             return httpx.Response(200, json=root_response())
         if (method, path) == ("GET", "/healthz"):
@@ -413,6 +418,11 @@ async def test_async_resource_methods_end_to_end() -> None:
         )
         await client.billing.portal()
         await client.billing.status()
+
+        logs = await client.activity_logs.list(limit=10)
+        assert len(logs.items) == 1
+        assert logs.items[0].action == "pin.created"
+        assert logs.current_retention_days == 30
 
         await client.system.root()
         await client.system.health()

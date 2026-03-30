@@ -21,18 +21,26 @@ def test_current_billing_payloads_parse() -> None:
     billing = BillingStatusResponse.model_validate(
         {
             "plan": "starter",
+            "billing_provider": "stripe",
             "billing_status": "active",
             "current_period_start": "2026-02-01T00:00:00Z",
             "current_period_end": "2026-03-01T00:00:00Z",
             "subscription_cancel_at": None,
             "quota_calls_monthly": 1000,
             "calls_used": 10,
-            "overage_pins_used": 0,
             "quota_reset_at": "2026-03-01T00:00:00Z",
+            "credits_remaining": 0,
+            "credits_enabled": False,
+            "credits_purchase_allowed": True,
+            "quota_exhausted": False,
+            "plan_consumption_percent": 1,
+            "storage_quota_bytes": 7516192768,
+            "storage_used_bytes": 0,
+            "storage_used_percent": 0,
+            "storage_warning": None,
             "pinterest_accounts_limit": 2,
             "uploaded_media_assets": True,
             "bulk_imports": True,
-            "overage_billing_threshold_pins": 100,
         }
     )
     pricing = PricingCatalogResponse.model_validate(
@@ -70,7 +78,8 @@ def test_current_billing_payloads_parse() -> None:
         }
     )
 
-    assert billing.overage_pins_used == 0
+    assert billing.credits_remaining == 0
+    assert billing.storage_quota_bytes == 7516192768
     assert pricing.plans[0].overage_billing_threshold_pins == 100
 
 

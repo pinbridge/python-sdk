@@ -23,22 +23,29 @@ class PortalResponse(PinbridgeModel):
 
 class BillingStatusResponse(PinbridgeModel):
     plan: Plan
+    billing_provider: str = "database"
     billing_cycle: BillingCycle | None = None
     billing_status: BillingStatus
     trial_active: bool = False
     trial_ends_at: datetime | None = None
-    allowed_trial_overage: int = 0
     current_period_start: datetime | None = None
     current_period_end: datetime | None = None
     subscription_cancel_at: datetime | None = None
     quota_calls_monthly: int
     calls_used: int
-    overage_pins_used: int
     quota_reset_at: datetime | None = None
+    credits_remaining: int = 0
+    credits_enabled: bool = False
+    credits_purchase_allowed: bool = False
+    quota_exhausted: bool = False
+    plan_consumption_percent: int = 0
+    storage_quota_bytes: int = 0
+    storage_used_bytes: int = 0
+    storage_used_percent: int = 0
+    storage_warning: str | None = None
     pinterest_accounts_limit: int
     uploaded_media_assets: bool
     bulk_imports: bool
-    overage_billing_threshold_pins: int | None = None
 
 
 class PricingAmountResponse(PinbridgeModel):
