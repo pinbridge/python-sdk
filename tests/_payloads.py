@@ -337,6 +337,33 @@ def billing_status_response() -> dict:
     }
 
 
+def activity_log_list_response() -> dict:
+    return {
+        "items": [
+            {
+                "id": UUID1,
+                "actor_user_id": UUID1,
+                "actor_type": "user",
+                "actor_label": "SDK User",
+                "action": "pin.created",
+                "category": "pin",
+                "resource_type": "pin",
+                "resource_id": UUID1,
+                "status": "success",
+                "message": "Pin created.",
+                "metadata": {"title": "A Pin"},
+                "request_id": "req-1",
+                "retention_days": 30,
+                "expires_at": TS,
+                "created_at": TS,
+            }
+        ],
+        "next_cursor": None,
+        "current_retention_days": 30,
+        "current_retention_label": "1 month",
+    }
+
+
 def root_response() -> dict:
     return {"service": "PinBridge API", "version": "1.0.0", "docs": "/docs"}
 
