@@ -346,7 +346,7 @@ def activity_log_list_response() -> dict:
                 "actor_type": "user",
                 "actor_label": "SDK User",
                 "action": "pin.created",
-                "category": "pin",
+                "category": "publishing",
                 "resource_type": "pin",
                 "resource_id": UUID1,
                 "status": "success",
