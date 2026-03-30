@@ -313,6 +313,7 @@ def pricing_catalog_response() -> dict:
 def billing_status_response() -> dict:
     return {
         "plan": "starter",
+        "billing_provider": "stripe",
         "billing_cycle": "monthly",
         "billing_status": "active",
         "current_period_start": TS,
@@ -320,12 +321,19 @@ def billing_status_response() -> dict:
         "subscription_cancel_at": None,
         "quota_calls_monthly": 1000,
         "calls_used": 10,
-        "overage_pins_used": 0,
         "quota_reset_at": TS,
+        "credits_remaining": 0,
+        "credits_enabled": False,
+        "credits_purchase_allowed": True,
+        "quota_exhausted": False,
+        "plan_consumption_percent": 1,
+        "storage_quota_bytes": 7516192768,
+        "storage_used_bytes": 0,
+        "storage_used_percent": 0,
+        "storage_warning": None,
         "pinterest_accounts_limit": 2,
         "uploaded_media_assets": True,
         "bulk_imports": True,
-        "overage_billing_threshold_pins": 100,
     }
 
 
