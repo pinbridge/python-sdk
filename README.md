@@ -190,8 +190,11 @@ client.set_bearer_token(switched.access_token)
 
 - `client.assets.upload_image(file, filename=..., content_type=...)`
 - `client.assets.upload_video(file, filename=..., content_type=...)`
+- `client.assets.list(workspace_id=None, sort="created_at_desc", limit=50, offset=0)`
 - `client.assets.get(asset_id)`
 - `client.assets.get_content(asset_id)`
+- `client.assets.delete(asset_id, confirm=False)`
+- `client.assets.bulk_delete([asset_id, ...], confirm=False)`
 - `client.pins.create(PinCreate | dict)`
 - `client.pins.import_json(list[PinImportCreate | PinCreate | dict])`
 - `client.pins.import_csv(file, filename=..., content_type=...)`
@@ -200,7 +203,14 @@ client.set_bearer_token(switched.access_token)
 - `client.pins.get(pin_id)`
 - `client.pins.list(limit=50, offset=0)`
 - `client.pins.delete(pin_id)`
+- `client.pins.retry(pin_id, PinRetryRequest | dict | None)`
+- `client.pins.bulk_delete([pin_id, ...])`
+- `client.pins.bulk_retry([pin_id, ...])`
 - `client.jobs.get(job_id)`
+
+Deletes on an asset referenced by pins return `requires_confirmation=True`; pass `confirm=True`
+to force the deletion. Bulk actions (`bulk_delete`, `bulk_retry`) return a `BulkOperationResponse`
+with per-item `results` (`succeeded` / `skipped` / `failed`).
 
 ```python
 from pinbridge_sdk.models import PinCreate, PinImportCreate
@@ -279,6 +289,11 @@ timestamps with an explicit timezone offset (for example `2026-03-06T10:00:00Z`)
 - `get(schedule_id)`
 - `list(limit=50, offset=0)`
 - `cancel(schedule_id)`
+- `retry(schedule_id)`
+- `delete(schedule_id)`
+- `bulk_cancel([schedule_id, ...])`
+- `bulk_retry([schedule_id, ...])`
+- `bulk_delete([schedule_id, ...])`
 
 Pins and schedules accept either a public `image_url` or an uploaded `asset_id`. Video publishes and schedules should use uploaded assets.
 Pinterest-compatible limits are enforced in SDK models: `title <= 100`, `description <= 800`,
@@ -299,6 +314,38 @@ Pinterest-compatible limits are enforced in SDK models: `title <= 100`, `descrip
 - `client.billing.portal()`
 - `client.billing.status()`
 - `client.rate_meter.get(account_id)`
+
+### Team (`client.team`)
+
+- `preview_invitation(token)`
+- `list_members()`
+- `list_invitations()`
+- `create_invitation(TeamInvitationCreateRequest | dict)`
+- `resend_invitation(invitation_id)`
+- `revoke_invitation(invitation_id)`
+- `update_member(member_id, TeamMemberUpdateRequest | dict)`
+- `remove_member(member_id)`
+- `accept_invitation(TeamInvitationAcceptRequest | dict)`
+
+```python
+from pinbridge_sdk.models import TeamInvitationCreateRequest
+
+invitation = client.team.create_invitation(
+    TeamInvitationCreateRequest(email="teammate@example.com", role="editor")
+)
+members = client.team.list_members()
+```
+
+### MCP Usage (`client.mcp`)
+
+- `quota()` — current-week MCP request usage and quota for the workspace
+- `track()` — increment the counter after a tool call, returning the updated usage
+
+### Email Preferences (`client.email`)
+
+- `get_preferences()`
+- `update_preferences(EmailPreferencesUpdateRequest | dict)`
+- `unsubscribe(workspace_id=..., token=..., user_id=...)` — public token-based unsubscribe
 
 ## Typed Models
 

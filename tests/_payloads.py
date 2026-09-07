@@ -410,3 +410,175 @@ def rate_meter_response() -> dict:
             "refill_rate": 20,
         },
     }
+
+
+def asset_list_response() -> dict:
+    return {
+        "assets": [asset_response()],
+        "total": 1,
+        "storage_used_bytes": 68,
+        "storage_quota_bytes": 1000,
+        "storage_used_percent": 6,
+    }
+
+
+def asset_delete_response(*, requires_confirmation: bool = False) -> dict:
+    return {
+        "deleted": not requires_confirmation,
+        "requires_confirmation": requires_confirmation,
+        "referenced_pin_count": 2 if requires_confirmation else 0,
+        "freed_bytes": 0 if requires_confirmation else 68,
+    }
+
+
+def bulk_asset_delete_response() -> dict:
+    return {
+        "deleted": [UUID3],
+        "requires_confirmation": [],
+        "total_freed_bytes": 68,
+        "deleted_items": [
+            {
+                "asset_id": UUID3,
+                "workspace_id": UUID2,
+                "original_filename": "pin.png",
+                "file_size_bytes": 68,
+                "referenced_pin_count": 0,
+                "freed_bytes": 68,
+            }
+        ],
+        "requires_confirmation_items": [],
+    }
+
+
+def bulk_operation_response() -> dict:
+    return {
+        "succeeded_count": 1,
+        "skipped_count": 0,
+        "failed_count": 1,
+        "results": [
+            {"id": UUID1, "status": "succeeded"},
+            {
+                "id": UUID3,
+                "status": "failed",
+                "error_code": "not_found",
+                "error_message": "Pin not found",
+            },
+        ],
+    }
+
+
+def team_member_response() -> dict:
+    return {
+        "id": UUID1,
+        "organization_id": UUID3,
+        "user_id": UUID1,
+        "role": "admin",
+        "invited_by_user_id": None,
+        "accepted_at": TS,
+        "created_at": TS,
+        "updated_at": TS,
+        "user": auth_response()["user"],
+        "invited_by": None,
+    }
+
+
+def team_members_list_response() -> dict:
+    return {"items": [team_member_response()]}
+
+
+def team_invitation_response() -> dict:
+    return {
+        "id": UUID4,
+        "organization_id": UUID3,
+        "email": "teammate@pinbridge.io",
+        "role": "editor",
+        "invited_by_user_id": UUID1,
+        "expires_at": TS,
+        "accepted_at": None,
+        "revoked_at": None,
+        "created_at": TS,
+        "updated_at": TS,
+        "inviter_name": "SDK User",
+        "inviter_email": "dev@pinbridge.io",
+    }
+
+
+def team_invitations_list_response() -> dict:
+    return {"items": [team_invitation_response()]}
+
+
+def team_invitation_preview_response() -> dict:
+    return {
+        "organization_id": UUID3,
+        "organization_name": "SDK Org",
+        "email": "teammate@pinbridge.io",
+        "role": "editor",
+        "status": "pending",
+        "expires_at": TS,
+        "inviter_name": "SDK User",
+        "inviter_email": "dev@pinbridge.io",
+        "team_access_enabled": True,
+    }
+
+
+def team_action_response(message: str = "Done") -> dict:
+    return {"message": message}
+
+
+def team_invitation_accept_response() -> dict:
+    base = auth_response()
+    permissions = {
+        "can_manage_members": True,
+        "can_manage_billing": False,
+        "can_manage_api_keys": True,
+        "can_manage_integrations": True,
+        "can_publish": True,
+        "can_delete_assets": True,
+        "can_reset_sandbox": True,
+        "can_view_reports": True,
+        "can_delete_content": True,
+    }
+    return {
+        "access_token": "jwt-token",
+        "token_type": "bearer",
+        "expires_in": 3600,
+        "user": base["user"],
+        "organization": base["organization"],
+        "organization_role": "editor",
+        "permissions": permissions,
+        "active_project": base["active_project"],
+        "projects": base["projects"],
+        "available_organizations": [
+            {
+                "organization": base["organization"],
+                "organization_role": "editor",
+                "permissions": permissions,
+                "active_project": base["active_project"],
+                "projects": base["projects"],
+            }
+        ],
+        "workspace": base["workspace"],
+    }
+
+
+def mcp_quota_response() -> dict:
+    return {
+        "week": "2026-W09",
+        "requests_used": 12,
+        "requests_limit": 100,
+        "quota_exhausted": False,
+        "resets_at": "2026-03-02T00:00:00Z",
+    }
+
+
+def email_preferences_response() -> dict:
+    return {
+        "id": UUID1,
+        "workspace_id": UUID2,
+        "user_id": UUID1,
+        "transactional_enabled": True,
+        "alerts_enabled": False,
+        "verification_enabled": True,
+        "created_at": TS,
+        "updated_at": TS,
+    }

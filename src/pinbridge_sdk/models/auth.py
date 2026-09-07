@@ -115,6 +115,26 @@ class AuthOrganizationResponse(PinbridgeModel):
     name: str
 
 
+class AuthPermissionResponse(PinbridgeModel):
+    can_manage_members: bool
+    can_manage_billing: bool
+    can_manage_api_keys: bool
+    can_manage_integrations: bool
+    can_publish: bool
+    can_delete_assets: bool
+    can_reset_sandbox: bool
+    can_view_reports: bool
+    can_delete_content: bool
+
+
+class AuthOrganizationSessionResponse(PinbridgeModel):
+    organization: AuthOrganizationResponse
+    organization_role: str
+    permissions: AuthPermissionResponse
+    active_project: AuthWorkspaceResponse
+    projects: list[AuthWorkspaceResponse]
+
+
 class AuthResponse(PinbridgeModel):
     access_token: str
     token_type: str = "bearer"

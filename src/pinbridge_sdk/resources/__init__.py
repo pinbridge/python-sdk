@@ -10,11 +10,14 @@ from .billing import (
     BillingResource,
     RateMeterResource,
 )
+from .email import AsyncEmailResource, EmailResource
+from .mcp import AsyncMCPResource, MCPResource
 from .pins import AsyncJobsResource, AsyncPinsResource, JobsResource, PinsResource
 from .pinterest import AsyncPinterestResource, PinterestResource
 from .projects import AsyncProjectsResource, ProjectsResource
 from .schedules import AsyncSchedulesResource, SchedulesResource
 from .system import AsyncSystemResource, SystemResource
+from .team import AsyncTeamResource, TeamResource
 from .webhooks import AsyncWebhooksResource, WebhooksResource
 
 __all__ = [
@@ -26,22 +29,28 @@ __all__ = [
     "AsyncAssetsResource",
     "AsyncAuthResource",
     "AsyncBillingResource",
+    "AsyncEmailResource",
     "AsyncJobsResource",
+    "AsyncMCPResource",
     "AsyncPinsResource",
     "AsyncPinterestResource",
     "AsyncProjectsResource",
     "AsyncRateMeterResource",
     "AsyncSchedulesResource",
     "AsyncSystemResource",
+    "AsyncTeamResource",
     "AsyncWebhooksResource",
     "AuthResource",
     "BillingResource",
+    "EmailResource",
     "JobsResource",
+    "MCPResource",
     "PinsResource",
     "PinterestResource",
     "ProjectsResource",
     "RateMeterResource",
     "SchedulesResource",
     "SystemResource",
+    "TeamResource",
     "WebhooksResource",
 ]
