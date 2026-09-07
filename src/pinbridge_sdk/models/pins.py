@@ -102,6 +102,13 @@ class PinImportCreate(PinCreate):
         return value.astimezone(timezone.utc)
 
 
+class PinRetryRequest(PinbridgeModel):
+    """Optional overrides when retrying a failed pin."""
+
+    board_id: str | None = None
+    account_id: UUID | None = None
+
+
 class PinResponse(PinbridgeModel):
     id: UUID
     workspace_id: UUID

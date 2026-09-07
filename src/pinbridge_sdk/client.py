@@ -17,13 +17,16 @@ from .resources import (
     AssetsResource,
     AuthResource,
     BillingResource,
+    EmailResource,
     JobsResource,
+    MCPResource,
     PinsResource,
     PinterestResource,
     ProjectsResource,
     RateMeterResource,
     SchedulesResource,
     SystemResource,
+    TeamResource,
     WebhooksResource,
 )
 from .resources.base import SyncAPIResource
@@ -51,6 +54,9 @@ class PinbridgeClient:
         "rate_meter": RateMeterResource,
         "jobs": JobsResource,
         "billing": BillingResource,
+        "team": TeamResource,
+        "mcp": MCPResource,
+        "email": EmailResource,
     }
 
     def __init__(

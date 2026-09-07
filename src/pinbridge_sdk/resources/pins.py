@@ -6,6 +6,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 from uuid import UUID
 
+from ..models.bulk import BulkOperationResponse
 from ..models.common import ImportJobStatus, ImportSourceType
 from ..models.pins import (
     ImportJobResponse,
@@ -13,6 +14,7 @@ from ..models.pins import (
     PinCreate,
     PinImportCreate,
     PinResponse,
+    PinRetryRequest,
 )
 from .assets import UploadableFile, _normalize_upload
 from .base import AsyncAPIResource, SyncAPIResource
@@ -20,6 +22,20 @@ from .base import AsyncAPIResource, SyncAPIResource
 
 def _serialize_pin_input(data: PinCreate | PinImportCreate | Mapping[str, Any]) -> dict[str, Any]:
     if isinstance(data, PinCreate):
+        return data.model_dump(mode="json", exclude_none=True)
+    return dict(data)
+
+
+def _serialize_bulk_ids(ids: Sequence[UUID | str]) -> dict[str, Any]:
+    return {"ids": [str(item) for item in ids]}
+
+
+def _serialize_pin_retry(
+    data: PinRetryRequest | Mapping[str, Any] | None,
+) -> dict[str, Any] | None:
+    if data is None:
+        return None
+    if isinstance(data, PinRetryRequest):
         return data.model_dump(mode="json", exclude_none=True)
     return dict(data)
 
@@ -119,6 +135,27 @@ class PinsResource(SyncAPIResource):
     def delete(self, pin_id: UUID | str) -> None:
         self._request("DELETE", "/v1/pins/{pin_id}", path_params={"pin_id": pin_id})
 
+    def retry(
+        self,
+        pin_id: UUID | str,
+        data: PinRetryRequest | Mapping[str, Any] | None = None,
+    ) -> PinResponse:
+        response = self._request(
+            "POST",
+            "/v1/pins/{pin_id}/retry",
+            path_params={"pin_id": pin_id},
+            json=_serialize_pin_retry(data),
+        )
+        return self._model(PinResponse, response)
+
+    def bulk_delete(self, ids: Sequence[UUID | str]) -> BulkOperationResponse:
+        response = self._request("POST", "/v1/pins/bulk-delete", json=_serialize_bulk_ids(ids))
+        return self._model(BulkOperationResponse, response)
+
+    def bulk_retry(self, ids: Sequence[UUID | str]) -> BulkOperationResponse:
+        response = self._request("POST", "/v1/pins/bulk-retry", json=_serialize_bulk_ids(ids))
+        return self._model(BulkOperationResponse, response)
+
 
 class JobsResource(SyncAPIResource):
     def get(self, job_id: UUID | str) -> JobStatusResponse:
@@ -201,6 +238,29 @@ class AsyncPinsResource(AsyncAPIResource):
 
     async def delete(self, pin_id: UUID | str) -> None:
         await self._request("DELETE", "/v1/pins/{pin_id}", path_params={"pin_id": pin_id})
+
+    async def retry(
+        self,
+        pin_id: UUID | str,
+        data: PinRetryRequest | Mapping[str, Any] | None = None,
+    ) -> PinResponse:
+        response = await self._request(
+            "POST",
+            "/v1/pins/{pin_id}/retry",
+            path_params={"pin_id": pin_id},
+            json=_serialize_pin_retry(data),
+        )
+        return self._model(PinResponse, response)
+
+    async def bulk_delete(self, ids: Sequence[UUID | str]) -> BulkOperationResponse:
+        response = await self._request(
+            "POST", "/v1/pins/bulk-delete", json=_serialize_bulk_ids(ids)
+        )
+        return self._model(BulkOperationResponse, response)
+
+    async def bulk_retry(self, ids: Sequence[UUID | str]) -> BulkOperationResponse:
+        response = await self._request("POST", "/v1/pins/bulk-retry", json=_serialize_bulk_ids(ids))
+        return self._model(BulkOperationResponse, response)
 
 
 class AsyncJobsResource(AsyncAPIResource):

@@ -17,13 +17,16 @@ from .resources import (
     AsyncAssetsResource,
     AsyncAuthResource,
     AsyncBillingResource,
+    AsyncEmailResource,
     AsyncJobsResource,
+    AsyncMCPResource,
     AsyncPinsResource,
     AsyncPinterestResource,
     AsyncProjectsResource,
     AsyncRateMeterResource,
     AsyncSchedulesResource,
     AsyncSystemResource,
+    AsyncTeamResource,
     AsyncWebhooksResource,
 )
 from .resources.base import AsyncAPIResource
@@ -51,6 +54,9 @@ class AsyncPinbridgeClient:
         "rate_meter": AsyncRateMeterResource,
         "jobs": AsyncJobsResource,
         "billing": AsyncBillingResource,
+        "team": AsyncTeamResource,
+        "mcp": AsyncMCPResource,
+        "email": AsyncEmailResource,
     }
 
     def __init__(
