@@ -35,6 +35,7 @@ class WorkspaceEnvironment(str, Enum):
 
 class PinStatus(str, Enum):
     QUEUED = "queued"
+    DEFERRED = "deferred"
     PUBLISHING = "publishing"
     PUBLISHED = "published"
     FAILED = "failed"
@@ -61,6 +62,7 @@ class ImportJobStatus(str, Enum):
 class ScheduleStatus(str, Enum):
     SCHEDULED = "scheduled"
     QUEUED = "queued"
+    DEFERRED = "deferred"
     RUNNING = "running"
     DONE = "done"
     FAILED = "failed"

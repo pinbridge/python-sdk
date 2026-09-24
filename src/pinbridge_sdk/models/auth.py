@@ -7,7 +7,7 @@ from typing import Annotated
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import StringConstraints, field_validator
+from pydantic import Field, StringConstraints, field_validator
 
 from .base import PinbridgeModel
 from .common import Plan, WorkspaceEnvironment
@@ -38,12 +38,26 @@ def _normalize_timezone(value: str | None) -> str | None:
     return normalized
 
 
+class RegisterMarketingAttribution(PinbridgeModel):
+    utm_source: str | None = None
+    utm_medium: str | None = None
+    utm_campaign: str | None = None
+    utm_term: str | None = None
+    utm_content: str | None = None
+    gclid: str | None = None
+    ga_client_id: str | None = None
+    referral_code: str | None = None
+
+
 class RegisterRequest(PinbridgeModel):
     full_name: FullName255
     email: EmailValue
     password: PasswordValue
     workspace_name: Name255 | None = None
     timezone: Timezone64 | None = None
+    invite_token: str | None = None
+    marketing_attribution: RegisterMarketingAttribution | None = None
+    next_path: str | None = None
 
     @field_validator("full_name")
     @classmethod
@@ -63,6 +77,7 @@ class LoginRequest(PinbridgeModel):
     email: EmailValue
     password: PasswordValue
     timezone: Timezone64 | None = None
+    invite_token: str | None = None
 
     @field_validator("timezone")
     @classmethod
@@ -144,6 +159,9 @@ class AuthResponse(PinbridgeModel):
     active_project: AuthWorkspaceResponse
     projects: list[AuthWorkspaceResponse]
     workspace: AuthWorkspaceResponse
+    available_organizations: list[AuthOrganizationSessionResponse] = Field(default_factory=list)
+    organization_role: str | None = None
+    permissions: AuthPermissionResponse | None = None
 
 
 class MeResponse(PinbridgeModel):
@@ -152,6 +170,9 @@ class MeResponse(PinbridgeModel):
     active_project: AuthWorkspaceResponse
     projects: list[AuthWorkspaceResponse]
     workspace: AuthWorkspaceResponse
+    available_organizations: list[AuthOrganizationSessionResponse] = Field(default_factory=list)
+    organization_role: str | None = None
+    permissions: AuthPermissionResponse | None = None
 
 
 class PrimaryEmailChangeRequest(PinbridgeModel):
