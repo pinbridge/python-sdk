@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Annotated
+from datetime import date, datetime
+from typing import Annotated, Any
 from uuid import UUID
 
-from pydantic import HttpUrl, StringConstraints, model_validator
+from pydantic import Field, HttpUrl, StringConstraints, model_validator
 
 from .base import PinbridgeModel
+from .pins import AnalyticsDailyMetric, AnalyticsProviderMode
 
 BoardName = Annotated[str, StringConstraints(min_length=1, max_length=180)]
 
@@ -33,6 +34,12 @@ class PinterestAccountResponse(PinbridgeModel):
     created_at: datetime
     updated_at: datetime
     revoked_at: datetime | None = None
+    health_status: str | None = None
+    health_message: str | None = None
+    health_checked_at: datetime | None = None
+    missing_scopes: list[str] = Field(default_factory=list)
+    reconnect_required: bool = False
+    token_expires_at: datetime | None = None
 
 
 class BoardResponse(PinbridgeModel):
@@ -62,6 +69,32 @@ class BoardUpdateRequest(PinbridgeModel):
         if self.name is None and self.description is None and self.privacy is None:
             raise ValueError("Provide at least one of name, description or privacy")
         return self
+
+
+class BoardAccessResponse(PinbridgeModel):
+    """Result of ``GET /v1/pinterest/boards/{board_id}/access``."""
+
+    account_id: UUID
+    board_id: str
+    publishable: bool
+    status: str
+    code: str | None = None
+    message: str
+    remediation: str | None = None
+    checked_at: datetime
+    source: str
+    board: dict[str, Any] | None = None
+    account_health: dict[str, Any] | None = None
+    retry_after_seconds: int | None = None
+
+
+class AccountAnalyticsResponse(PinbridgeModel):
+    account_id: UUID
+    start_date: date
+    end_date: date
+    provider_mode: AnalyticsProviderMode
+    totals: dict[str, Any] = Field(default_factory=dict)
+    daily: list[AnalyticsDailyMetric] = Field(default_factory=list)
 
 
 class RelatedTermsItem(PinbridgeModel):

@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from datetime import date
 from typing import Any
 from uuid import UUID
 
 import httpx
 
 from ..models.pinterest import (
+    AccountAnalyticsResponse,
+    BoardAccessResponse,
     BoardCreateRequest,
     BoardResponse,
     BoardUpdateRequest,
@@ -18,6 +21,7 @@ from ..models.pinterest import (
     RelatedTermsResponse,
 )
 from .base import AsyncAPIResource, SyncAPIResource
+from .pins import _serialize_analytics_params
 
 
 def _normalize_terms_input(terms: str | Sequence[str]) -> list[str]:
@@ -82,6 +86,37 @@ class PinterestResource(SyncAPIResource):
             "GET", "/v1/pinterest/boards", params={"account_id": str(account_id)}
         )
         return self._list(BoardResponse, response)
+
+    def check_board_access(
+        self, board_id: str, *, account_id: UUID | str, fresh: bool = False
+    ) -> BoardAccessResponse:
+        """Report whether an account can publish to a board and why not."""
+        response = self._request(
+            "GET",
+            "/v1/pinterest/boards/{board_id}/access",
+            path_params={"board_id": board_id},
+            params={"account_id": str(account_id), "fresh": fresh},
+        )
+        return self._model(BoardAccessResponse, response)
+
+    def account_analytics(
+        self,
+        account_id: UUID | str,
+        *,
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
+        metrics: Sequence[str] | str | None = None,
+    ) -> AccountAnalyticsResponse:
+        """Pinterest analytics for a whole connected account (max 90 days)."""
+        response = self._request(
+            "GET",
+            "/v1/pinterest/accounts/{account_id}/analytics",
+            path_params={"account_id": account_id},
+            params=_serialize_analytics_params(
+                start_date=start_date, end_date=end_date, metrics=metrics
+            ),
+        )
+        return self._model(AccountAnalyticsResponse, response)
 
     def list_related_terms(
         self,
@@ -178,6 +213,37 @@ class AsyncPinterestResource(AsyncAPIResource):
             params={"account_id": str(account_id)},
         )
         return self._list(BoardResponse, response)
+
+    async def check_board_access(
+        self, board_id: str, *, account_id: UUID | str, fresh: bool = False
+    ) -> BoardAccessResponse:
+        """Report whether an account can publish to a board and why not."""
+        response = await self._request(
+            "GET",
+            "/v1/pinterest/boards/{board_id}/access",
+            path_params={"board_id": board_id},
+            params={"account_id": str(account_id), "fresh": fresh},
+        )
+        return self._model(BoardAccessResponse, response)
+
+    async def account_analytics(
+        self,
+        account_id: UUID | str,
+        *,
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
+        metrics: Sequence[str] | str | None = None,
+    ) -> AccountAnalyticsResponse:
+        """Pinterest analytics for a whole connected account (max 90 days)."""
+        response = await self._request(
+            "GET",
+            "/v1/pinterest/accounts/{account_id}/analytics",
+            path_params={"account_id": account_id},
+            params=_serialize_analytics_params(
+                start_date=start_date, end_date=end_date, metrics=metrics
+            ),
+        )
+        return self._model(AccountAnalyticsResponse, response)
 
     async def list_related_terms(
         self,

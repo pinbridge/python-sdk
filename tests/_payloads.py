@@ -582,3 +582,97 @@ def email_preferences_response() -> dict:
         "created_at": TS,
         "updated_at": TS,
     }
+
+
+def pin_validation_response(*, valid: bool = True) -> dict:
+    return {
+        "valid": valid,
+        "dry_run": True,
+        "checks": [
+            {"name": "account", "status": "passed", "message": "Account is healthy."},
+            {
+                "name": "board_access",
+                "status": "passed" if valid else "failed",
+                "code": None if valid else "board_not_found",
+                "message": "Board reachable." if valid else "Board not found.",
+                "remediation": None if valid else "Pick a board from list_boards.",
+                "details": {"board_id": "123-board"},
+            },
+        ],
+        "resolved": {"board_id": "123-board", "idempotency_key": "k-1"},
+        "existing_pin_id": None,
+        "headroom": {"quota_remaining": 90},
+    }
+
+
+def pin_batch_response() -> dict:
+    return {
+        "created_count": 1,
+        "existing_count": 0,
+        "failed_count": 1,
+        "results": [
+            {"index": 0, "idempotency_key": "k-1", "status": "created", "pin": pin_response()},
+            {
+                "index": 1,
+                "idempotency_key": "k-2",
+                "status": "failed",
+                "pin": None,
+                "error": {"code": "board_not_found", "message": "Board not found."},
+            },
+        ],
+        "headroom": {"quota_remaining": 89},
+    }
+
+
+def pin_delete_response() -> dict:
+    return {
+        "id": UUID1,
+        "deleted": True,
+        "removed_from_pinterest": False,
+        "pinterest_pin_id": None,
+        "reason": "not_published",
+    }
+
+
+def pin_analytics_response() -> dict:
+    return {
+        "pin_id": UUID1,
+        "pinterest_pin_id": "987",
+        "account_id": UUID3,
+        "start_date": "2026-09-01",
+        "end_date": "2026-09-24",
+        "provider_mode": "pinterest",
+        "totals": {"impression": 120, "save": 4, "pin_click": 9},
+        "daily": [
+            {"date": "2026-09-01", "data_status": "READY", "metrics": {"impression": 5}},
+            {"date": "2026-09-02", "metrics": {"impression": 7}},
+        ],
+    }
+
+
+def account_analytics_response() -> dict:
+    return {
+        "account_id": UUID3,
+        "start_date": "2026-09-01",
+        "end_date": "2026-09-24",
+        "provider_mode": "simulated",
+        "totals": {"impression": 0},
+        "daily": [],
+    }
+
+
+def board_access_response(*, publishable: bool = True) -> dict:
+    return {
+        "account_id": UUID3,
+        "board_id": "123-board",
+        "publishable": publishable,
+        "status": "ok" if publishable else "failed",
+        "code": None if publishable else "board_not_owned",
+        "message": "Board is publishable." if publishable else "Board belongs to another user.",
+        "remediation": None if publishable else "Pick a board you own.",
+        "checked_at": "2026-09-24T10:00:00Z",
+        "source": "pinterest",
+        "board": {"id": "123-board", "name": "SDK Board"},
+        "account_health": {"status": "healthy"},
+        "retry_after_seconds": None,
+    }

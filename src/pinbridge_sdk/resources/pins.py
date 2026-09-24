@@ -3,18 +3,24 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from datetime import date, datetime
 from typing import Any
 from uuid import UUID
 
 from ..models.bulk import BulkOperationResponse
-from ..models.common import ImportJobStatus, ImportSourceType
+from ..models.common import ImportJobStatus, ImportSourceType, PinStatus
 from ..models.pins import (
     ImportJobResponse,
     JobStatusResponse,
+    PinAnalyticsResponse,
+    PinBatchResponse,
     PinCreate,
+    PinDeleteResponse,
     PinImportCreate,
     PinResponse,
     PinRetryRequest,
+    PinUpdate,
+    PinValidationResponse,
 )
 from .assets import UploadableFile, _normalize_upload
 from .base import AsyncAPIResource, SyncAPIResource
@@ -46,6 +52,68 @@ def _serialize_import_rows(
     return [_serialize_pin_input(row) for row in rows]
 
 
+def _serialize_pin_update(data: PinUpdate | Mapping[str, Any]) -> dict[str, Any]:
+    # exclude_unset (not exclude_none) so an explicit None still clears a field.
+    if isinstance(data, PinUpdate):
+        return data.model_dump(mode="json", exclude_unset=True)
+    return dict(data)
+
+
+def _serialize_pin_batch(pins: Sequence[PinCreate | Mapping[str, Any]]) -> dict[str, Any]:
+    return {"pins": [_serialize_pin_input(pin) for pin in pins]}
+
+
+def _iso(value: datetime | str | None) -> str | None:
+    if value is None:
+        return None
+    return value.isoformat() if isinstance(value, datetime) else value
+
+
+def _serialize_pin_filters(
+    *,
+    limit: int,
+    offset: int,
+    account_id: UUID | str | None,
+    board_id: str | None,
+    status: PinStatus | str | None,
+    error_code: str | None,
+    since: datetime | str | None,
+    until: datetime | str | None,
+) -> dict[str, Any]:
+    params: dict[str, Any] = {"limit": limit, "offset": offset}
+    if account_id is not None:
+        params["account_id"] = str(account_id)
+    if board_id is not None:
+        params["board_id"] = board_id
+    if status is not None:
+        params["status"] = status.value if isinstance(status, PinStatus) else status
+    if error_code is not None:
+        params["error_code"] = error_code
+    if since is not None:
+        params["since"] = _iso(since)
+    if until is not None:
+        params["until"] = _iso(until)
+    return params
+
+
+def _serialize_analytics_params(
+    *,
+    start_date: date | str | None,
+    end_date: date | str | None,
+    metrics: Sequence[str] | str | None,
+) -> dict[str, Any]:
+    params: dict[str, Any] = {}
+    if start_date is not None:
+        params["start_date"] = (
+            start_date.isoformat() if isinstance(start_date, date) else start_date
+        )
+    if end_date is not None:
+        params["end_date"] = end_date.isoformat() if isinstance(end_date, date) else end_date
+    if metrics is not None:
+        params["metrics"] = metrics if isinstance(metrics, str) else ",".join(metrics)
+    return params
+
+
 def _serialize_import_filters(
     *,
     limit: int,
@@ -68,6 +136,16 @@ class PinsResource(SyncAPIResource):
         payload = _serialize_pin_input(data)
         response = self._request("POST", "/v1/pins", json=payload)
         return self._model(PinResponse, response)
+
+    def validate(self, data: PinCreate | Mapping[str, Any]) -> PinValidationResponse:
+        """Dry-run a pin request (``POST /v1/pins/validate``); nothing is published."""
+        response = self._request("POST", "/v1/pins/validate", json=_serialize_pin_input(data))
+        return self._model(PinValidationResponse, response)
+
+    def create_batch(self, pins: Sequence[PinCreate | Mapping[str, Any]]) -> PinBatchResponse:
+        """Publish up to 100 pins in one call with a per-item outcome."""
+        response = self._request("POST", "/v1/pins/batch", json=_serialize_pin_batch(pins))
+        return self._model(PinBatchResponse, response)
 
     def import_json(
         self,
@@ -128,12 +206,78 @@ class PinsResource(SyncAPIResource):
         response = self._request("GET", "/v1/pins/{pin_id}", path_params={"pin_id": pin_id})
         return self._model(PinResponse, response)
 
-    def list(self, *, limit: int = 50, offset: int = 0) -> list[PinResponse]:
-        response = self._request("GET", "/v1/pins", params={"limit": limit, "offset": offset})
+    def list(
+        self,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        account_id: UUID | str | None = None,
+        board_id: str | None = None,
+        status: PinStatus | str | None = None,
+        error_code: str | None = None,
+        since: datetime | str | None = None,
+        until: datetime | str | None = None,
+    ) -> list[PinResponse]:
+        params = _serialize_pin_filters(
+            limit=limit,
+            offset=offset,
+            account_id=account_id,
+            board_id=board_id,
+            status=status,
+            error_code=error_code,
+            since=since,
+            until=until,
+        )
+        response = self._request("GET", "/v1/pins", params=params)
         return self._list(PinResponse, response)
 
-    def delete(self, pin_id: UUID | str) -> None:
-        self._request("DELETE", "/v1/pins/{pin_id}", path_params={"pin_id": pin_id})
+    def update(self, pin_id: UUID | str, data: PinUpdate | Mapping[str, Any]) -> PinResponse:
+        """Edit title, description, link, alt text or board (``PATCH /v1/pins/{id}``)."""
+        response = self._request(
+            "PATCH",
+            "/v1/pins/{pin_id}",
+            path_params={"pin_id": pin_id},
+            json=_serialize_pin_update(data),
+        )
+        return self._model(PinResponse, response)
+
+    def delete(
+        self, pin_id: UUID | str, *, delete_from_pinterest: bool = False
+    ) -> PinDeleteResponse | None:
+        """Delete a pin record; with ``delete_from_pinterest`` also remove it on Pinterest.
+
+        Returns ``None`` for a record-only delete (HTTP 204) and a
+        :class:`PinDeleteResponse` describing the upstream outcome otherwise.
+        """
+        if not delete_from_pinterest:
+            self._request("DELETE", "/v1/pins/{pin_id}", path_params={"pin_id": pin_id})
+            return None
+        response = self._request(
+            "DELETE",
+            "/v1/pins/{pin_id}",
+            path_params={"pin_id": pin_id},
+            params={"delete_from_pinterest": True},
+        )
+        return self._model(PinDeleteResponse, response)
+
+    def analytics(
+        self,
+        pin_id: UUID | str,
+        *,
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
+        metrics: Sequence[str] | str | None = None,
+    ) -> PinAnalyticsResponse:
+        """Pinterest analytics for a published pin over a date range (max 90 days)."""
+        response = self._request(
+            "GET",
+            "/v1/pins/{pin_id}/analytics",
+            path_params={"pin_id": pin_id},
+            params=_serialize_analytics_params(
+                start_date=start_date, end_date=end_date, metrics=metrics
+            ),
+        )
+        return self._model(PinAnalyticsResponse, response)
 
     def retry(
         self,
@@ -168,6 +312,16 @@ class AsyncPinsResource(AsyncAPIResource):
         payload = _serialize_pin_input(data)
         response = await self._request("POST", "/v1/pins", json=payload)
         return self._model(PinResponse, response)
+
+    async def validate(self, data: PinCreate | Mapping[str, Any]) -> PinValidationResponse:
+        """Dry-run a pin request (``POST /v1/pins/validate``); nothing is published."""
+        response = await self._request("POST", "/v1/pins/validate", json=_serialize_pin_input(data))
+        return self._model(PinValidationResponse, response)
+
+    async def create_batch(self, pins: Sequence[PinCreate | Mapping[str, Any]]) -> PinBatchResponse:
+        """Publish up to 100 pins in one call with a per-item outcome."""
+        response = await self._request("POST", "/v1/pins/batch", json=_serialize_pin_batch(pins))
+        return self._model(PinBatchResponse, response)
 
     async def import_json(
         self,
@@ -232,12 +386,74 @@ class AsyncPinsResource(AsyncAPIResource):
         response = await self._request("GET", "/v1/pins/{pin_id}", path_params={"pin_id": pin_id})
         return self._model(PinResponse, response)
 
-    async def list(self, *, limit: int = 50, offset: int = 0) -> list[PinResponse]:
-        response = await self._request("GET", "/v1/pins", params={"limit": limit, "offset": offset})
+    async def list(
+        self,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        account_id: UUID | str | None = None,
+        board_id: str | None = None,
+        status: PinStatus | str | None = None,
+        error_code: str | None = None,
+        since: datetime | str | None = None,
+        until: datetime | str | None = None,
+    ) -> list[PinResponse]:
+        params = _serialize_pin_filters(
+            limit=limit,
+            offset=offset,
+            account_id=account_id,
+            board_id=board_id,
+            status=status,
+            error_code=error_code,
+            since=since,
+            until=until,
+        )
+        response = await self._request("GET", "/v1/pins", params=params)
         return self._list(PinResponse, response)
 
-    async def delete(self, pin_id: UUID | str) -> None:
-        await self._request("DELETE", "/v1/pins/{pin_id}", path_params={"pin_id": pin_id})
+    async def update(self, pin_id: UUID | str, data: PinUpdate | Mapping[str, Any]) -> PinResponse:
+        """Edit title, description, link, alt text or board (``PATCH /v1/pins/{id}``)."""
+        response = await self._request(
+            "PATCH",
+            "/v1/pins/{pin_id}",
+            path_params={"pin_id": pin_id},
+            json=_serialize_pin_update(data),
+        )
+        return self._model(PinResponse, response)
+
+    async def delete(
+        self, pin_id: UUID | str, *, delete_from_pinterest: bool = False
+    ) -> PinDeleteResponse | None:
+        """Delete a pin record; with ``delete_from_pinterest`` also remove it on Pinterest."""
+        if not delete_from_pinterest:
+            await self._request("DELETE", "/v1/pins/{pin_id}", path_params={"pin_id": pin_id})
+            return None
+        response = await self._request(
+            "DELETE",
+            "/v1/pins/{pin_id}",
+            path_params={"pin_id": pin_id},
+            params={"delete_from_pinterest": True},
+        )
+        return self._model(PinDeleteResponse, response)
+
+    async def analytics(
+        self,
+        pin_id: UUID | str,
+        *,
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
+        metrics: Sequence[str] | str | None = None,
+    ) -> PinAnalyticsResponse:
+        """Pinterest analytics for a published pin over a date range (max 90 days)."""
+        response = await self._request(
+            "GET",
+            "/v1/pins/{pin_id}/analytics",
+            path_params={"pin_id": pin_id},
+            params=_serialize_analytics_params(
+                start_date=start_date, end_date=end_date, metrics=metrics
+            ),
+        )
+        return self._model(PinAnalyticsResponse, response)
 
     async def retry(
         self,

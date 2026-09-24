@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Annotated
+from datetime import date, datetime, timezone
+from enum import Enum
+from typing import Annotated, Any
 from uuid import UUID
 
 from pydantic import Field, HttpUrl, StringConstraints, field_validator, model_validator
@@ -102,6 +103,108 @@ class PinImportCreate(PinCreate):
         return value.astimezone(timezone.utc)
 
 
+class PinUpdate(PinbridgeModel):
+    """Partial edit of a pin (``PATCH /v1/pins/{id}``); unset fields are unchanged.
+
+    Published pins are updated on Pinterest too and cannot have fields cleared
+    with ``None``; unpublished pins can.
+    """
+
+    title: PinTitle | None = None
+    description: PinDescription | None = None
+    link_url: HttpUrl | None = None
+    alt_text: PinAltText | None = None
+    board_id: str | None = None
+
+    @field_validator("link_url")
+    @classmethod
+    def validate_link_url_length(cls, value: HttpUrl | None) -> HttpUrl | None:
+        if value is not None and len(str(value)) > 2048:
+            raise ValueError("link_url must be <= 2048 characters")
+        return value
+
+
+class PinDeleteResponse(PinbridgeModel):
+    """Outcome of ``DELETE /v1/pins/{id}?delete_from_pinterest=true``."""
+
+    id: UUID
+    deleted: bool = True
+    removed_from_pinterest: bool
+    pinterest_pin_id: str | None = None
+    reason: str | None = None
+
+
+class PinBatchItemStatus(str, Enum):
+    CREATED = "created"
+    EXISTING = "existing"
+    FAILED = "failed"
+
+
+class PinBatchItemResult(PinbridgeModel):
+    index: int
+    idempotency_key: str
+    status: PinBatchItemStatus
+    pin: PinResponse | None = None
+    error: dict[str, Any] | None = None
+
+
+class PinBatchResponse(PinbridgeModel):
+    created_count: int
+    existing_count: int
+    failed_count: int
+    results: list[PinBatchItemResult] = Field(default_factory=list)
+    headroom: dict[str, Any] | None = None
+
+
+class PinValidationCheckStatus(str, Enum):
+    PASSED = "passed"
+    FAILED = "failed"
+    WARNING = "warning"
+    SKIPPED = "skipped"
+
+
+class PinValidationCheck(PinbridgeModel):
+    name: str
+    status: PinValidationCheckStatus
+    code: str | None = None
+    message: str
+    remediation: str | None = None
+    details: dict[str, Any] | None = None
+
+
+class PinValidationResponse(PinbridgeModel):
+    """Dry-run result of ``POST /v1/pins/validate`` or ``POST /v1/schedules/validate``."""
+
+    valid: bool
+    dry_run: bool = True
+    checks: list[PinValidationCheck] = Field(default_factory=list)
+    resolved: dict[str, Any] | None = None
+    existing_pin_id: UUID | None = None
+    headroom: dict[str, Any] | None = None
+
+
+class AnalyticsProviderMode(str, Enum):
+    PINTEREST = "pinterest"
+    SIMULATED = "simulated"
+
+
+class AnalyticsDailyMetric(PinbridgeModel):
+    date: date
+    data_status: str | None = None
+    metrics: dict[str, Any] = Field(default_factory=dict)
+
+
+class PinAnalyticsResponse(PinbridgeModel):
+    pin_id: UUID
+    pinterest_pin_id: str | None = None
+    account_id: UUID
+    start_date: date
+    end_date: date
+    provider_mode: AnalyticsProviderMode
+    totals: dict[str, Any] = Field(default_factory=dict)
+    daily: list[AnalyticsDailyMetric] = Field(default_factory=list)
+
+
 class PinRetryRequest(PinbridgeModel):
     """Optional overrides when retrying a failed pin."""
 
@@ -173,3 +276,7 @@ class ImportJobResponse(PinbridgeModel):
     completed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
+
+
+PinBatchItemResult.model_rebuild()
+PinBatchResponse.model_rebuild()

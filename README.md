@@ -135,9 +135,9 @@ print(ready.status, ready.database)
 
 ### API Keys (`client.api_keys`)
 
-- `create(APIKeyCreate | dict)`
-- `list()`
-- `update(key_id, APIKeyUpdate | dict)`
+- `create(APIKeyCreate | dict)` — optional `scopes` (`read` / `write` / `destructive`) and `pinterest_account_ids` allow-list
+- `list()` — responses carry `scopes`, `pinterest_account_ids`, `source` (`manual` / `oauth`), `last_used_at`
+- `update(key_id, APIKeyUpdate | dict)` — partial: `name`, `scopes`, `pinterest_account_ids`
 - `revoke(key_id)`
 
 ### Pinterest (`client.pinterest`)
@@ -147,6 +147,8 @@ print(ready.status, ready.database)
 - `list_accounts()`
 - `revoke_account(account_id)`
 - `list_boards(account_id)`
+- `check_board_access(board_id, account_id=..., fresh=False)` — can this account publish to this board, and why not
+- `account_analytics(account_id, start_date=None, end_date=None, metrics=None)` — impressions, saves, clicks per day (max 90 days)
 - `list_related_terms(account_id, terms, exact_match=False)`
 - `create_board(BoardCreateRequest | dict)`
 - `update_board(board_id, BoardUpdateRequest | dict)`
@@ -197,17 +199,35 @@ client.set_bearer_token(switched.access_token)
 - `client.assets.delete(asset_id, confirm=False)`
 - `client.assets.bulk_delete([asset_id, ...], confirm=False)`
 - `client.pins.create(PinCreate | dict)`
+- `client.pins.validate(PinCreate | dict)` — dry run: every check the API runs, nothing published
+- `client.pins.create_batch([PinCreate | dict, ...])` — up to 100 pins, per-item outcome
+- `client.pins.update(pin_id, PinUpdate | dict)` — edit title / description / link / alt text / board; published pins are updated on Pinterest too
+- `client.pins.analytics(pin_id, start_date=None, end_date=None, metrics=None)`
 - `client.pins.import_json(list[PinImportCreate | PinCreate | dict])`
 - `client.pins.import_csv(file, filename=..., content_type=...)`
 - `client.pins.get_import(job_id)`
 - `client.pins.list_imports(limit=50, offset=0, status=None, source_type=None)`
 - `client.pins.get(pin_id)`
-- `client.pins.list(limit=50, offset=0)`
-- `client.pins.delete(pin_id)`
+- `client.pins.list(limit=50, offset=0, account_id=None, board_id=None, status=None, error_code=None, since=None, until=None)`
+- `client.pins.delete(pin_id, delete_from_pinterest=False)` — returns `None`, or a `PinDeleteResponse` when the Pinterest-side delete was requested
 - `client.pins.retry(pin_id, PinRetryRequest | dict | None)`
 - `client.pins.bulk_delete([pin_id, ...])`
 - `client.pins.bulk_retry([pin_id, ...])`
 - `client.jobs.get(job_id)`
+
+```python
+from pinbridge_sdk.models import PinCreate, PinUpdate
+
+draft = PinCreate(account_id=account.id, board_id=board.id, title="Autumn recipes",
+                  image_url="https://example.com/soup.jpg", idempotency_key="soup-2026-09")
+check = client.pins.validate(draft)            # nothing published
+if check.valid:
+    pin = client.pins.create(draft)
+    client.pins.update(pin.id, PinUpdate(title="Autumn soup recipes"))
+    stats = client.pins.analytics(pin.id, metrics=["IMPRESSION", "SAVE"])
+else:
+    print([(c.name, c.code, c.remediation) for c in check.checks if c.status.value == "failed"])
+```
 
 Deletes on an asset referenced by pins return `requires_confirmation=True`; pass `confirm=True`
 to force the deletion. Bulk actions (`bulk_delete`, `bulk_retry`) return a `BulkOperationResponse`
@@ -287,8 +307,9 @@ timestamps with an explicit timezone offset (for example `2026-03-06T10:00:00Z`)
 ### Schedules (`client.schedules`)
 
 - `create(ScheduleCreate | dict)`
+- `validate(ScheduleCreate | dict)` — dry run, including `run_at`
 - `get(schedule_id)`
-- `list(limit=50, offset=0)`
+- `list(limit=50, offset=0, account_id=None, board_id=None, status=None, since=None, until=None)`
 - `update(schedule_id, ScheduleUpdate | dict)` — edit a pending schedule in place (time, board, text, media)
 - `cancel(schedule_id)`
 - `retry(schedule_id)`
