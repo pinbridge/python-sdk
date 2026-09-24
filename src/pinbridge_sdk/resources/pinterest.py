@@ -11,6 +11,7 @@ import httpx
 from ..models.pinterest import (
     BoardCreateRequest,
     BoardResponse,
+    BoardUpdateRequest,
     OAuthCallbackResponse,
     OAuthStartResponse,
     PinterestAccountResponse,
@@ -109,6 +110,23 @@ class PinterestResource(SyncAPIResource):
         response = self._request("POST", "/v1/pinterest/boards", json=payload)
         return self._model(BoardResponse, response)
 
+    def update_board(
+        self, board_id: str, data: BoardUpdateRequest | Mapping[str, Any]
+    ) -> BoardResponse:
+        """Rename a board or change its description/privacy on Pinterest."""
+        payload = (
+            data.model_dump(mode="json", exclude_none=True)
+            if isinstance(data, BoardUpdateRequest)
+            else dict(data)
+        )
+        response = self._request(
+            "PATCH",
+            "/v1/pinterest/boards/{board_id}",
+            path_params={"board_id": board_id},
+            json=payload,
+        )
+        return self._model(BoardResponse, response)
+
     def delete_board(self, board_id: str, *, account_id: UUID | str) -> None:
         self._request(
             "DELETE",
@@ -186,6 +204,23 @@ class AsyncPinterestResource(AsyncAPIResource):
             else dict(data)
         )
         response = await self._request("POST", "/v1/pinterest/boards", json=payload)
+        return self._model(BoardResponse, response)
+
+    async def update_board(
+        self, board_id: str, data: BoardUpdateRequest | Mapping[str, Any]
+    ) -> BoardResponse:
+        """Rename a board or change its description/privacy on Pinterest."""
+        payload = (
+            data.model_dump(mode="json", exclude_none=True)
+            if isinstance(data, BoardUpdateRequest)
+            else dict(data)
+        )
+        response = await self._request(
+            "PATCH",
+            "/v1/pinterest/boards/{board_id}",
+            path_params={"board_id": board_id},
+            json=payload,
+        )
         return self._model(BoardResponse, response)
 
     async def delete_board(self, board_id: str, *, account_id: UUID | str) -> None:

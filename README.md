@@ -149,6 +149,7 @@ print(ready.status, ready.database)
 - `list_boards(account_id)`
 - `list_related_terms(account_id, terms, exact_match=False)`
 - `create_board(BoardCreateRequest | dict)`
+- `update_board(board_id, BoardUpdateRequest | dict)`
 - `delete_board(board_id, account_id=...)`
 
 ```python
@@ -288,6 +289,7 @@ timestamps with an explicit timezone offset (for example `2026-03-06T10:00:00Z`)
 - `create(ScheduleCreate | dict)`
 - `get(schedule_id)`
 - `list(limit=50, offset=0)`
+- `update(schedule_id, ScheduleUpdate | dict)` — edit a pending schedule in place (time, board, text, media)
 - `cancel(schedule_id)`
 - `retry(schedule_id)`
 - `delete(schedule_id)`
