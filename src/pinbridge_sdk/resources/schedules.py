@@ -7,7 +7,7 @@ from typing import Any
 from uuid import UUID
 
 from ..models.bulk import BulkOperationResponse
-from ..models.schedules import ScheduleCreate, ScheduleResponse
+from ..models.schedules import ScheduleCreate, ScheduleResponse, ScheduleUpdate
 from .base import AsyncAPIResource, SyncAPIResource
 from .pins import _serialize_bulk_ids
 
@@ -37,6 +37,23 @@ class SchedulesResource(SyncAPIResource):
             params={"limit": limit, "offset": offset},
         )
         return self._list(ScheduleResponse, response)
+
+    def update(
+        self, schedule_id: UUID | str, data: ScheduleUpdate | Mapping[str, Any]
+    ) -> ScheduleResponse:
+        """Edit a pending schedule in place (``PATCH /v1/schedules/{id}``)."""
+        payload = (
+            data.model_dump(mode="json", exclude_unset=True)
+            if isinstance(data, ScheduleUpdate)
+            else dict(data)
+        )
+        response = self._request(
+            "PATCH",
+            "/v1/schedules/{schedule_id}",
+            path_params={"schedule_id": schedule_id},
+            json=payload,
+        )
+        return self._model(ScheduleResponse, response)
 
     def cancel(self, schedule_id: UUID | str) -> ScheduleResponse:
         response = self._request(
@@ -99,6 +116,23 @@ class AsyncSchedulesResource(AsyncAPIResource):
             params={"limit": limit, "offset": offset},
         )
         return self._list(ScheduleResponse, response)
+
+    async def update(
+        self, schedule_id: UUID | str, data: ScheduleUpdate | Mapping[str, Any]
+    ) -> ScheduleResponse:
+        """Edit a pending schedule in place (``PATCH /v1/schedules/{id}``)."""
+        payload = (
+            data.model_dump(mode="json", exclude_unset=True)
+            if isinstance(data, ScheduleUpdate)
+            else dict(data)
+        )
+        response = await self._request(
+            "PATCH",
+            "/v1/schedules/{schedule_id}",
+            path_params={"schedule_id": schedule_id},
+            json=payload,
+        )
+        return self._model(ScheduleResponse, response)
 
     async def cancel(self, schedule_id: UUID | str) -> ScheduleResponse:
         response = await self._request(

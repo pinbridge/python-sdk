@@ -26,7 +26,9 @@ class ProjectsResource(SyncAPIResource):
         payload = (
             data.model_dump(mode="json", exclude_none=True)
             if isinstance(data, CreateSandboxProjectRequest)
-            else dict(data) if data is not None else {}
+            else dict(data)
+            if data is not None
+            else {}
         )
         response = self._request("POST", "/v1/projects/sandbox", json=payload)
         return self._model(ProjectsContextResponse, response)
@@ -57,7 +59,9 @@ class AsyncProjectsResource(AsyncAPIResource):
         payload = (
             data.model_dump(mode="json", exclude_none=True)
             if isinstance(data, CreateSandboxProjectRequest)
-            else dict(data) if data is not None else {}
+            else dict(data)
+            if data is not None
+            else {}
         )
         response = await self._request("POST", "/v1/projects/sandbox", json=payload)
         return self._model(ProjectsContextResponse, response)

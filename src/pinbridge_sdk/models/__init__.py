@@ -80,6 +80,7 @@ from .pins import (
 from .pinterest import (
     BoardCreateRequest,
     BoardResponse,
+    BoardUpdateRequest,
     OAuthCallbackResponse,
     OAuthStartResponse,
     PinterestAccountResponse,
@@ -94,7 +95,7 @@ from .projects import (
     ProjectSwitchResponse,
     SwitchProjectRequest,
 )
-from .schedules import ScheduleCreate, ScheduleResponse
+from .schedules import ScheduleCreate, ScheduleResponse, ScheduleUpdate
 from .system import (
     HealthResponse,
     RateMeterAccount,
@@ -148,6 +149,7 @@ __all__ = [
     "BulkOperationResponse",
     "ChangePasswordRequest",
     "BoardCreateRequest",
+    "BoardUpdateRequest",
     "BoardResponse",
     "CheckoutRequest",
     "CheckoutResponse",
@@ -200,6 +202,7 @@ __all__ = [
     "ResetPasswordRequest",
     "RootResponse",
     "ScheduleCreate",
+    "ScheduleUpdate",
     "ScheduleResponse",
     "ScheduleStatus",
     "TeamActionResponse",

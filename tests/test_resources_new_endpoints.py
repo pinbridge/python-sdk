@@ -11,6 +11,7 @@ from _payloads import (
     UUID4,
     asset_delete_response,
     asset_list_response,
+    board_response,
     bulk_asset_delete_response,
     bulk_operation_response,
     email_preferences_response,
@@ -28,8 +29,10 @@ from _payloads import (
 
 from pinbridge_sdk import AsyncPinbridgeClient, PinbridgeClient
 from pinbridge_sdk.models import (
+    BoardUpdateRequest,
     EmailPreferencesUpdateRequest,
     PinRetryRequest,
+    ScheduleUpdate,
     TeamInvitationAcceptRequest,
     TeamInvitationCreateRequest,
     TeamMemberUpdateRequest,
@@ -72,6 +75,14 @@ def _handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json=bulk_operation_response())
 
     # --- schedules lifecycle ---
+    if (method, path) == ("PATCH", f"/v1/schedules/{UUID3}"):
+        payload = _request_json(request)
+        assert payload == {"title": "Moved", "run_at": "2030-01-01T10:00:00Z", "description": None}
+        return httpx.Response(200, json=schedule_response())
+    if (method, path) == ("PATCH", "/v1/pinterest/boards/123-board"):
+        payload = _request_json(request)
+        assert payload == {"account_id": UUID1, "name": "Renamed"}
+        return httpx.Response(200, json=board_response())
     if (method, path) == ("POST", f"/v1/schedules/{UUID3}/retry"):
         return httpx.Response(200, json=schedule_response())
     if (method, path) == ("DELETE", f"/v1/schedules/{UUID3}"):
@@ -145,6 +156,13 @@ def test_sync_new_endpoints() -> None:
         assert client.pins.bulk_retry([UUID1, UUID3]).failed_count == 1
 
         assert client.schedules.retry(UUID3).id
+        assert client.schedules.update(
+            UUID3,
+            ScheduleUpdate(title="Moved", run_at="2030-01-01T10:00:00Z", description=None),
+        ).id
+        assert client.pinterest.update_board(
+            "123-board", BoardUpdateRequest(account_id=UUID1, name="Renamed")
+        ).id
         client.schedules.delete(UUID3)
         assert client.schedules.bulk_cancel([UUID3]).succeeded_count == 1
         assert client.schedules.bulk_retry([UUID3]).succeeded_count == 1
@@ -198,6 +216,16 @@ async def test_async_new_endpoints() -> None:
         assert (await client.pins.bulk_retry([UUID1, UUID3])).failed_count == 1
 
         assert (await client.schedules.retry(UUID3)).id
+        assert (
+            await client.schedules.update(
+                UUID3, {"title": "Moved", "run_at": "2030-01-01T10:00:00Z", "description": None}
+            )
+        ).id
+        assert (
+            await client.pinterest.update_board(
+                "123-board", {"account_id": UUID1, "name": "Renamed"}
+            )
+        ).id
         await client.schedules.delete(UUID3)
         assert (await client.schedules.bulk_cancel([UUID3])).succeeded_count == 1
         assert (await client.schedules.bulk_retry([UUID3])).succeeded_count == 1

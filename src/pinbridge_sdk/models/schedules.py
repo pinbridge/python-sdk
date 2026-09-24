@@ -65,6 +65,46 @@ class ScheduleCreate(PinbridgeModel):
         return value
 
 
+class ScheduleUpdate(PinbridgeModel):
+    """Partial edit of a pending schedule; fields left unset are unchanged."""
+
+    run_at: datetime | None = None
+    board_id: str | None = None
+    title: ScheduleTitle | None = None
+    description: ScheduleDescription | None = None
+    link_url: HttpUrl | None = None
+    image_url: HttpUrl | None = None
+    asset_id: UUID | None = None
+    cover_image_url: HttpUrl | None = None
+    cover_image_asset_id: UUID | None = None
+
+    @model_validator(mode="after")
+    def validate_exclusive_sources(self) -> ScheduleUpdate:
+        if self.image_url is not None and self.asset_id is not None:
+            raise ValueError("Provide either image_url or asset_id, not both")
+        if self.cover_image_url is not None and self.cover_image_asset_id is not None:
+            raise ValueError("Provide either cover_image_url or cover_image_asset_id, not both")
+        return self
+
+    @field_validator("run_at")
+    @classmethod
+    def validate_run_at_timezone(cls, value: datetime | None) -> datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError(
+                "run_at must include a timezone offset (for example 2026-03-06T10:00:00Z)"
+            )
+        return value.astimezone(timezone.utc)
+
+    @field_validator("link_url", "cover_image_url", "image_url")
+    @classmethod
+    def validate_url_length(cls, value: HttpUrl | None) -> HttpUrl | None:
+        if value is not None and len(str(value)) > 2048:
+            raise ValueError("URL must be <= 2048 characters")
+        return value
+
+
 class ScheduleResponse(PinbridgeModel):
     id: UUID
     workspace_id: UUID
