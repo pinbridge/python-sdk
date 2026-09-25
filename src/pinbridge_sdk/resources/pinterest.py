@@ -9,6 +9,7 @@ from uuid import UUID
 
 import httpx
 
+from ..models.pins import AnalyticsSource
 from ..models.pinterest import (
     AccountAnalyticsResponse,
     BoardAccessResponse,
@@ -106,14 +107,19 @@ class PinterestResource(SyncAPIResource):
         start_date: date | str | None = None,
         end_date: date | str | None = None,
         metrics: Sequence[str] | str | None = None,
+        source: AnalyticsSource | None = None,
     ) -> AccountAnalyticsResponse:
-        """Pinterest analytics for a whole connected account (max 90 days)."""
+        """Pinterest analytics for a whole connected account over a date range.
+
+        ``source`` (API 1.33.0+): ``auto`` (default), ``stored`` (up to 366 days) or
+        ``live`` (up to 90 days).
+        """
         response = self._request(
             "GET",
             "/v1/pinterest/accounts/{account_id}/analytics",
             path_params={"account_id": account_id},
             params=_serialize_analytics_params(
-                start_date=start_date, end_date=end_date, metrics=metrics
+                start_date=start_date, end_date=end_date, metrics=metrics, source=source
             ),
         )
         return self._model(AccountAnalyticsResponse, response)
@@ -233,14 +239,19 @@ class AsyncPinterestResource(AsyncAPIResource):
         start_date: date | str | None = None,
         end_date: date | str | None = None,
         metrics: Sequence[str] | str | None = None,
+        source: AnalyticsSource | None = None,
     ) -> AccountAnalyticsResponse:
-        """Pinterest analytics for a whole connected account (max 90 days)."""
+        """Pinterest analytics for a whole connected account over a date range.
+
+        ``source`` (API 1.33.0+): ``auto`` (default), ``stored`` (up to 366 days) or
+        ``live`` (up to 90 days).
+        """
         response = await self._request(
             "GET",
             "/v1/pinterest/accounts/{account_id}/analytics",
             path_params={"account_id": account_id},
             params=_serialize_analytics_params(
-                start_date=start_date, end_date=end_date, metrics=metrics
+                start_date=start_date, end_date=end_date, metrics=metrics, source=source
             ),
         )
         return self._model(AccountAnalyticsResponse, response)

@@ -91,6 +91,7 @@ from .pagination import Page
 from .pins import (
     AnalyticsDailyMetric,
     AnalyticsProviderMode,
+    AnalyticsSource,
     BulkPinImportRowResult,
     ImportJobResponse,
     JobStatusResponse,
@@ -167,6 +168,7 @@ __all__ = [
     "AccountAnalyticsResponse",
     "AnalyticsDailyMetric",
     "AnalyticsProviderMode",
+    "AnalyticsSource",
     "BoardAccessResponse",
     "AssetDeleteResponse",
     "AssetListResponse",
