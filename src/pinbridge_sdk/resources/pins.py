@@ -9,6 +9,7 @@ from uuid import UUID
 
 from ..models.bulk import BulkOperationResponse
 from ..models.common import ImportJobStatus, ImportSourceType, PinStatus
+from ..models.pagination import Page
 from ..models.pins import (
     ImportJobResponse,
     JobStatusResponse,
@@ -19,6 +20,7 @@ from ..models.pins import (
     PinImportCreate,
     PinResponse,
     PinRetryRequest,
+    PinSort,
     PinUpdate,
     PinValidationResponse,
 )
@@ -79,6 +81,8 @@ def _serialize_pin_filters(
     error_code: str | None,
     since: datetime | str | None,
     until: datetime | str | None,
+    q: str | None,
+    sort: PinSort | str | None,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {"limit": limit, "offset": offset}
     if account_id is not None:
@@ -93,6 +97,10 @@ def _serialize_pin_filters(
         params["since"] = _iso(since)
     if until is not None:
         params["until"] = _iso(until)
+    if q is not None:
+        params["q"] = q
+    if sort is not None:
+        params["sort"] = sort
     return params
 
 
@@ -217,7 +225,14 @@ class PinsResource(SyncAPIResource):
         error_code: str | None = None,
         since: datetime | str | None = None,
         until: datetime | str | None = None,
+        q: str | None = None,
+        sort: PinSort | str | None = None,
     ) -> list[PinResponse]:
+        """List pins, newest first by default.
+
+        ``q`` searches title, description and link URL; ``sort`` picks the order
+        (both need API 1.34.0+). Use :meth:`list_page` to also get the total.
+        """
         params = _serialize_pin_filters(
             limit=limit,
             offset=offset,
@@ -227,9 +242,41 @@ class PinsResource(SyncAPIResource):
             error_code=error_code,
             since=since,
             until=until,
+            q=q,
+            sort=sort,
         )
         response = self._request("GET", "/v1/pins", params=params)
         return self._list(PinResponse, response)
+
+    def list_page(
+        self,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        account_id: UUID | str | None = None,
+        board_id: str | None = None,
+        status: PinStatus | str | None = None,
+        error_code: str | None = None,
+        since: datetime | str | None = None,
+        until: datetime | str | None = None,
+        q: str | None = None,
+        sort: PinSort | str | None = None,
+    ) -> Page[PinResponse]:
+        """Same filters as :meth:`list`, plus the total matching pins (API 1.34.0+)."""
+        params = _serialize_pin_filters(
+            limit=limit,
+            offset=offset,
+            account_id=account_id,
+            board_id=board_id,
+            status=status,
+            error_code=error_code,
+            since=since,
+            until=until,
+            q=q,
+            sort=sort,
+        )
+        response = self._request("GET", "/v1/pins", params=params)
+        return self._page(PinResponse, response, limit=limit, offset=offset)
 
     def update(self, pin_id: UUID | str, data: PinUpdate | Mapping[str, Any]) -> PinResponse:
         """Edit title, description, link, alt text or board (``PATCH /v1/pins/{id}``)."""
@@ -397,7 +444,14 @@ class AsyncPinsResource(AsyncAPIResource):
         error_code: str | None = None,
         since: datetime | str | None = None,
         until: datetime | str | None = None,
+        q: str | None = None,
+        sort: PinSort | str | None = None,
     ) -> list[PinResponse]:
+        """List pins, newest first by default.
+
+        ``q`` searches title, description and link URL; ``sort`` picks the order
+        (both need API 1.34.0+). Use :meth:`list_page` to also get the total.
+        """
         params = _serialize_pin_filters(
             limit=limit,
             offset=offset,
@@ -407,9 +461,41 @@ class AsyncPinsResource(AsyncAPIResource):
             error_code=error_code,
             since=since,
             until=until,
+            q=q,
+            sort=sort,
         )
         response = await self._request("GET", "/v1/pins", params=params)
         return self._list(PinResponse, response)
+
+    async def list_page(
+        self,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        account_id: UUID | str | None = None,
+        board_id: str | None = None,
+        status: PinStatus | str | None = None,
+        error_code: str | None = None,
+        since: datetime | str | None = None,
+        until: datetime | str | None = None,
+        q: str | None = None,
+        sort: PinSort | str | None = None,
+    ) -> Page[PinResponse]:
+        """Same filters as :meth:`list`, plus the total matching pins (API 1.34.0+)."""
+        params = _serialize_pin_filters(
+            limit=limit,
+            offset=offset,
+            account_id=account_id,
+            board_id=board_id,
+            status=status,
+            error_code=error_code,
+            since=since,
+            until=until,
+            q=q,
+            sort=sort,
+        )
+        response = await self._request("GET", "/v1/pins", params=params)
+        return self._page(PinResponse, response, limit=limit, offset=offset)
 
     async def update(self, pin_id: UUID | str, data: PinUpdate | Mapping[str, Any]) -> PinResponse:
         """Edit title, description, link, alt text or board (``PATCH /v1/pins/{id}``)."""

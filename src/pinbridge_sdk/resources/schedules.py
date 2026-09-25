@@ -9,8 +9,9 @@ from uuid import UUID
 
 from ..models.bulk import BulkOperationResponse
 from ..models.common import ScheduleStatus
+from ..models.pagination import Page
 from ..models.pins import PinValidationResponse
-from ..models.schedules import ScheduleCreate, ScheduleResponse, ScheduleUpdate
+from ..models.schedules import ScheduleCreate, ScheduleResponse, ScheduleSort, ScheduleUpdate
 from .base import AsyncAPIResource, SyncAPIResource
 from .pins import _iso, _serialize_bulk_ids
 
@@ -30,6 +31,8 @@ def _serialize_schedule_filters(
     status: ScheduleStatus | str | None,
     since: datetime | str | None,
     until: datetime | str | None,
+    q: str | None,
+    sort: ScheduleSort | str | None,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {"limit": limit, "offset": offset}
     if account_id is not None:
@@ -42,6 +45,10 @@ def _serialize_schedule_filters(
         params["since"] = _iso(since)
     if until is not None:
         params["until"] = _iso(until)
+    if q is not None:
+        params["q"] = q
+    if sort is not None:
+        params["sort"] = sort
     return params
 
 
@@ -75,7 +82,15 @@ class SchedulesResource(SyncAPIResource):
         status: ScheduleStatus | str | None = None,
         since: datetime | str | None = None,
         until: datetime | str | None = None,
+        q: str | None = None,
+        sort: ScheduleSort | str | None = None,
     ) -> list[ScheduleResponse]:
+        """List schedules, latest ``run_at`` first by default.
+
+        ``q`` searches the pin title, description and link URL; ``sort`` picks the
+        order, e.g. ``run_at_asc`` for the next run first (both need API 1.34.0+).
+        Use :meth:`list_page` to also get the total.
+        """
         params = _serialize_schedule_filters(
             limit=limit,
             offset=offset,
@@ -84,9 +99,39 @@ class SchedulesResource(SyncAPIResource):
             status=status,
             since=since,
             until=until,
+            q=q,
+            sort=sort,
         )
         response = self._request("GET", "/v1/schedules", params=params)
         return self._list(ScheduleResponse, response)
+
+    def list_page(
+        self,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        account_id: UUID | str | None = None,
+        board_id: str | None = None,
+        status: ScheduleStatus | str | None = None,
+        since: datetime | str | None = None,
+        until: datetime | str | None = None,
+        q: str | None = None,
+        sort: ScheduleSort | str | None = None,
+    ) -> Page[ScheduleResponse]:
+        """Same filters as :meth:`list`, plus the total matching schedules (API 1.34.0+)."""
+        params = _serialize_schedule_filters(
+            limit=limit,
+            offset=offset,
+            account_id=account_id,
+            board_id=board_id,
+            status=status,
+            since=since,
+            until=until,
+            q=q,
+            sort=sort,
+        )
+        response = self._request("GET", "/v1/schedules", params=params)
+        return self._page(ScheduleResponse, response, limit=limit, offset=offset)
 
     def update(
         self, schedule_id: UUID | str, data: ScheduleUpdate | Mapping[str, Any]
@@ -173,7 +218,15 @@ class AsyncSchedulesResource(AsyncAPIResource):
         status: ScheduleStatus | str | None = None,
         since: datetime | str | None = None,
         until: datetime | str | None = None,
+        q: str | None = None,
+        sort: ScheduleSort | str | None = None,
     ) -> list[ScheduleResponse]:
+        """List schedules, latest ``run_at`` first by default.
+
+        ``q`` searches the pin title, description and link URL; ``sort`` picks the
+        order, e.g. ``run_at_asc`` for the next run first (both need API 1.34.0+).
+        Use :meth:`list_page` to also get the total.
+        """
         params = _serialize_schedule_filters(
             limit=limit,
             offset=offset,
@@ -182,9 +235,39 @@ class AsyncSchedulesResource(AsyncAPIResource):
             status=status,
             since=since,
             until=until,
+            q=q,
+            sort=sort,
         )
         response = await self._request("GET", "/v1/schedules", params=params)
         return self._list(ScheduleResponse, response)
+
+    async def list_page(
+        self,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        account_id: UUID | str | None = None,
+        board_id: str | None = None,
+        status: ScheduleStatus | str | None = None,
+        since: datetime | str | None = None,
+        until: datetime | str | None = None,
+        q: str | None = None,
+        sort: ScheduleSort | str | None = None,
+    ) -> Page[ScheduleResponse]:
+        """Same filters as :meth:`list`, plus the total matching schedules (API 1.34.0+)."""
+        params = _serialize_schedule_filters(
+            limit=limit,
+            offset=offset,
+            account_id=account_id,
+            board_id=board_id,
+            status=status,
+            since=since,
+            until=until,
+            q=q,
+            sort=sort,
+        )
+        response = await self._request("GET", "/v1/schedules", params=params)
+        return self._page(ScheduleResponse, response, limit=limit, offset=offset)
 
     async def update(
         self, schedule_id: UUID | str, data: ScheduleUpdate | Mapping[str, Any]
