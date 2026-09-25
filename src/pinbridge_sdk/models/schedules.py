@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import HttpUrl, StringConstraints, field_validator, model_validator
@@ -13,6 +13,18 @@ from .common import ScheduleStatus
 
 ScheduleTitle = Annotated[str, StringConstraints(max_length=100)]
 ScheduleDescription = Annotated[str, StringConstraints(max_length=800)]
+
+# Sort orders accepted by ``GET /v1/schedules`` (API 1.34.0+); ``run_at_asc`` = next run first.
+ScheduleSort = Literal[
+    "run_at_desc",
+    "run_at_asc",
+    "created_at_desc",
+    "created_at_asc",
+    "title_asc",
+    "title_desc",
+    "status_asc",
+    "status_desc",
+]
 
 
 class ScheduleCreate(PinbridgeModel):
