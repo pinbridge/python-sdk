@@ -195,6 +195,12 @@ class PinValidationResponse(PinbridgeModel):
     headroom: dict[str, Any] | None = None
 
 
+# Where an analytics read is answered from (API 1.33.0+): auto picks PinBridge's
+# stored history when it covers the range, stored forces it (up to 366 days),
+# live always asks Pinterest (up to 90 days).
+AnalyticsSource = Literal["auto", "stored", "live"]
+
+
 class AnalyticsProviderMode(str, Enum):
     PINTEREST = "pinterest"
     SIMULATED = "simulated"
@@ -213,8 +219,15 @@ class PinAnalyticsResponse(PinbridgeModel):
     start_date: date
     end_date: date
     provider_mode: AnalyticsProviderMode
+    # Each metric summed over the range; total_comments / total_reactions are lifetime.
     totals: dict[str, Any] = Field(default_factory=dict)
     daily: list[AnalyticsDailyMetric] = Field(default_factory=list)
+    # live | stored | simulated (API 1.33.0+).
+    source: str | None = None
+    data_as_of: datetime | None = None
+    history_start: date | None = None
+    # Set when the pin no longer exists on Pinterest (API 1.35.0+).
+    removed_from_pinterest_at: datetime | None = None
 
 
 class PinRetryRequest(PinbridgeModel):
@@ -248,6 +261,11 @@ class PinResponse(PinbridgeModel):
     created_at: datetime
     updated_at: datetime
     published_at: datetime | None = None
+    # When the pin last failed (API 1.35.0+).
+    failed_at: datetime | None = None
+    # When PinBridge found the published pin deleted on Pinterest; status stays
+    # ``published`` (API 1.35.0+).
+    removed_from_pinterest_at: datetime | None = None
 
 
 class JobStatusResponse(PinbridgeModel):

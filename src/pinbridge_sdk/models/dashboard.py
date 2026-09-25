@@ -17,7 +17,13 @@ class DashboardGranularity(str, Enum):
 
 
 class DashboardPinStats(PinbridgeModel):
-    """Pins submitted in a period, grouped by their current status."""
+    """Pin outcomes in a period (API 1.35.0+ counts them by when they happened).
+
+    ``total`` is the pins submitted in the period. ``by_status["published"]``
+    counts pins published in the period and ``by_status["failed"]`` pins that
+    failed in it and are still failed; the queued, deferred and publishing
+    counts are pins submitted in the period that are still waiting.
+    """
 
     total: int
     by_status: dict[str, int]
@@ -25,7 +31,11 @@ class DashboardPinStats(PinbridgeModel):
 
 
 class DashboardSeriesPoint(PinbridgeModel):
-    """One hour or day of pin activity; ``start`` is in the requested time zone."""
+    """One hour or day of pin activity; ``start`` is in the requested time zone.
+
+    ``created`` counts pins submitted in the bucket, ``published`` and ``failed``
+    the outcomes that happened in it.
+    """
 
     start: datetime
     created: int
