@@ -10,6 +10,7 @@ from .billing import (
     BillingResource,
     RateMeterResource,
 )
+from .dashboard import AsyncDashboardResource, DashboardResource
 from .email import AsyncEmailResource, EmailResource
 from .mcp import AsyncMCPResource, MCPResource
 from .pins import AsyncJobsResource, AsyncPinsResource, JobsResource, PinsResource
@@ -29,6 +30,7 @@ __all__ = [
     "AsyncAssetsResource",
     "AsyncAuthResource",
     "AsyncBillingResource",
+    "AsyncDashboardResource",
     "AsyncEmailResource",
     "AsyncJobsResource",
     "AsyncMCPResource",
@@ -42,6 +44,7 @@ __all__ = [
     "AsyncWebhooksResource",
     "AuthResource",
     "BillingResource",
+    "DashboardResource",
     "EmailResource",
     "JobsResource",
     "MCPResource",

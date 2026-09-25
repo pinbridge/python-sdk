@@ -6,6 +6,7 @@
 - [Assets](assets.md)
 - [Auth](auth.md)
 - [Billing](billing.md)
+- [Dashboard](dashboard.md)
 - [Email](email.md)
 - [Mcp](mcp.md)
 - [Pins](pins.md)

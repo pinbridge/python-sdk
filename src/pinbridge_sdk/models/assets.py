@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
+from typing import Literal
 from uuid import UUID
 
 from .base import PinbridgeModel
@@ -13,6 +14,12 @@ from .common import WorkspaceEnvironment
 class AssetType(str, Enum):
     IMAGE = "image"
     VIDEO = "video"
+
+
+# Sort orders accepted by ``GET /v1/assets``; ``size_asc`` needs API 1.34.0+.
+AssetSort = Literal[
+    "created_at_desc", "created_at_asc", "name_asc", "name_desc", "size_desc", "size_asc"
+]
 
 
 class AssetResponse(PinbridgeModel):

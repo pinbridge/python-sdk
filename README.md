@@ -193,7 +193,7 @@ client.set_bearer_token(switched.access_token)
 
 - `client.assets.upload_image(file, filename=..., content_type=...)`
 - `client.assets.upload_video(file, filename=..., content_type=...)`
-- `client.assets.list(workspace_id=None, sort="created_at_desc", limit=50, offset=0)`
+- `client.assets.list(workspace_id=None, sort="created_at_desc", limit=50, offset=0, q=None, asset_type=None, in_use=None, since=None, until=None)` — `total` counts every match; `q` searches file names, `in_use` keeps assets referenced (or not) by a pin
 - `client.assets.get(asset_id)`
 - `client.assets.get_content(asset_id)`
 - `client.assets.delete(asset_id, confirm=False)`
@@ -208,7 +208,8 @@ client.set_bearer_token(switched.access_token)
 - `client.pins.get_import(job_id)`
 - `client.pins.list_imports(limit=50, offset=0, status=None, source_type=None)`
 - `client.pins.get(pin_id)`
-- `client.pins.list(limit=50, offset=0, account_id=None, board_id=None, status=None, error_code=None, since=None, until=None)`
+- `client.pins.list(limit=50, offset=0, account_id=None, board_id=None, status=None, error_code=None, since=None, until=None, q=None, sort=None)` — `q` searches title, description and link; `sort` is one of `PinSort` (`created_at_desc` by default, `published_at_*`, `title_*`, `status_*`)
+- `client.pins.list_page(...)` — same filters, returns a `Page` with `items`, `total` (from `X-Total-Count`) and `has_more`
 - `client.pins.delete(pin_id, delete_from_pinterest=False)` — returns `None`, or a `PinDeleteResponse` when the Pinterest-side delete was requested
 - `client.pins.retry(pin_id, PinRetryRequest | dict | None)`
 - `client.pins.bulk_delete([pin_id, ...])`
@@ -309,7 +310,8 @@ timestamps with an explicit timezone offset (for example `2026-03-06T10:00:00Z`)
 - `create(ScheduleCreate | dict)`
 - `validate(ScheduleCreate | dict)` — dry run, including `run_at`
 - `get(schedule_id)`
-- `list(limit=50, offset=0, account_id=None, board_id=None, status=None, since=None, until=None)`
+- `list(limit=50, offset=0, account_id=None, board_id=None, status=None, since=None, until=None, q=None, sort=None)` — `sort` is one of `ScheduleSort`; `run_at_asc` lists the next run first
+- `list_page(...)` — same filters, returns a `Page` with `items`, `total` and `has_more`
 - `update(schedule_id, ScheduleUpdate | dict)` — edit a pending schedule in place (time, board, text, media)
 - `cancel(schedule_id)`
 - `retry(schedule_id)`
@@ -321,6 +323,28 @@ timestamps with an explicit timezone offset (for example `2026-03-06T10:00:00Z`)
 Pins and schedules accept either a public `image_url` or an uploaded `asset_id`. Video publishes and schedules should use uploaded assets.
 Pinterest-compatible limits are enforced in SDK models: `title <= 100`, `description <= 800`,
 `alt_text <= 500`, and URLs (`link_url`, `cover_image_url`) `<= 2048`.
+
+### Dashboard (`client.dashboard`)
+
+- `summary(start=None, end=None, tz=None, account_id=None)` — publishing activity for `[start, end)`:
+  pin counts by status and success rate, the same figures for the previous period of equal
+  length, an hourly (ranges up to 48 hours) or daily series bucketed in `tz`, published pins per
+  account, the current queue, schedules and import jobs. Defaults to the last 30 days; up to 366
+  days. A naive `start`/`end` is read as wall-clock time in `tz`.
+
+```python
+from datetime import datetime
+
+week = client.dashboard.summary(start=datetime(2026, 9, 1), end=datetime(2026, 9, 8), tz="Europe/Paris")
+print(week.pins.total, week.pins.success_rate, week.previous_pins.total)
+for point in week.series:
+    print(point.start.date(), point.created, point.published, point.failed)
+
+page = client.pins.list_page(account_id=account.id, q="soup", sort="created_at_desc", limit=25)
+print(f"{len(page.items)} of {page.total}", "more" if page.has_more else "done")
+```
+
+Search, sort, `list_page` totals, the asset filters and the dashboard need API 1.34.0 or later.
 
 ### Webhooks (`client.webhooks`)
 
