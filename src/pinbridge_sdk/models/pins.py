@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 from enum import Enum
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import Field, HttpUrl, StringConstraints, field_validator, model_validator
@@ -16,6 +16,18 @@ PinTitle = Annotated[str, StringConstraints(max_length=100)]
 PinDescription = Annotated[str, StringConstraints(max_length=800)]
 PinAltText = Annotated[str, StringConstraints(max_length=500)]
 IdempotencyKey = Annotated[str, StringConstraints(max_length=255)]
+
+# Sort orders accepted by ``GET /v1/pins`` (API 1.34.0+).
+PinSort = Literal[
+    "created_at_desc",
+    "created_at_asc",
+    "published_at_desc",
+    "published_at_asc",
+    "title_asc",
+    "title_desc",
+    "status_asc",
+    "status_desc",
+]
 
 
 class PinCreate(PinbridgeModel):

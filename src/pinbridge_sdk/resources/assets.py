@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import datetime
 from mimetypes import guess_type
 from pathlib import Path
 from typing import Any, BinaryIO
@@ -12,6 +13,8 @@ from ..models.assets import (
     AssetDeleteResponse,
     AssetListResponse,
     AssetResponse,
+    AssetSort,
+    AssetType,
     BulkAssetDeleteResponse,
 )
 from .base import AsyncAPIResource, SyncAPIResource
@@ -50,13 +53,28 @@ def _normalize_upload(
 def _serialize_asset_list_params(
     *,
     workspace_id: UUID | str | None,
-    sort: str,
+    sort: AssetSort | str,
     limit: int,
     offset: int,
+    q: str | None,
+    asset_type: AssetType | str | None,
+    in_use: bool | None,
+    since: datetime | str | None,
+    until: datetime | str | None,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {"sort": sort, "limit": limit, "offset": offset}
     if workspace_id is not None:
         params["workspace_id"] = str(workspace_id)
+    if q is not None:
+        params["q"] = q
+    if asset_type is not None:
+        params["asset_type"] = asset_type.value if isinstance(asset_type, AssetType) else asset_type
+    if in_use is not None:
+        params["in_use"] = "true" if in_use else "false"
+    if since is not None:
+        params["since"] = since.isoformat() if isinstance(since, datetime) else since
+    if until is not None:
+        params["until"] = until.isoformat() if isinstance(until, datetime) else until
     return params
 
 
@@ -137,10 +155,22 @@ class AssetsResource(SyncAPIResource):
         self,
         *,
         workspace_id: UUID | str | None = None,
-        sort: str = "created_at_desc",
+        sort: AssetSort | str = "created_at_desc",
         limit: int = 50,
         offset: int = 0,
+        q: str | None = None,
+        asset_type: AssetType | str | None = None,
+        in_use: bool | None = None,
+        since: datetime | str | None = None,
+        until: datetime | str | None = None,
     ) -> AssetListResponse:
+        """List the organization's assets; ``total`` counts every match.
+
+        ``q`` searches the original file name, ``asset_type`` keeps images or
+        videos, ``in_use`` keeps assets referenced (or not) by a pin, and
+        ``since``/``until`` bound the upload time. These filters and the
+        ``size_asc`` sort need API 1.34.0+.
+        """
         response = self._request(
             "GET",
             "/v1/assets",
@@ -149,6 +179,11 @@ class AssetsResource(SyncAPIResource):
                 sort=sort,
                 limit=limit,
                 offset=offset,
+                q=q,
+                asset_type=asset_type,
+                in_use=in_use,
+                since=since,
+                until=until,
             ),
         )
         return self._model(AssetListResponse, response)
@@ -245,10 +280,22 @@ class AsyncAssetsResource(AsyncAPIResource):
         self,
         *,
         workspace_id: UUID | str | None = None,
-        sort: str = "created_at_desc",
+        sort: AssetSort | str = "created_at_desc",
         limit: int = 50,
         offset: int = 0,
+        q: str | None = None,
+        asset_type: AssetType | str | None = None,
+        in_use: bool | None = None,
+        since: datetime | str | None = None,
+        until: datetime | str | None = None,
     ) -> AssetListResponse:
+        """List the organization's assets; ``total`` counts every match.
+
+        ``q`` searches the original file name, ``asset_type`` keeps images or
+        videos, ``in_use`` keeps assets referenced (or not) by a pin, and
+        ``since``/``until`` bound the upload time. These filters and the
+        ``size_asc`` sort need API 1.34.0+.
+        """
         response = await self._request(
             "GET",
             "/v1/assets",
@@ -257,6 +304,11 @@ class AsyncAssetsResource(AsyncAPIResource):
                 sort=sort,
                 limit=limit,
                 offset=offset,
+                q=q,
+                asset_type=asset_type,
+                in_use=in_use,
+                since=since,
+                until=until,
             ),
         )
         return self._model(AssetListResponse, response)
