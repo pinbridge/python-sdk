@@ -11,6 +11,7 @@ from ..models.bulk import BulkOperationResponse
 from ..models.common import ImportJobStatus, ImportSourceType, PinStatus
 from ..models.pagination import Page
 from ..models.pins import (
+    AnalyticsSource,
     ImportJobResponse,
     JobStatusResponse,
     PinAnalyticsResponse,
@@ -83,6 +84,7 @@ def _serialize_pin_filters(
     until: datetime | str | None,
     q: str | None,
     sort: PinSort | str | None,
+    removed: bool | None = None,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {"limit": limit, "offset": offset}
     if account_id is not None:
@@ -101,6 +103,8 @@ def _serialize_pin_filters(
         params["q"] = q
     if sort is not None:
         params["sort"] = sort
+    if removed is not None:
+        params["removed"] = "true" if removed else "false"
     return params
 
 
@@ -109,6 +113,7 @@ def _serialize_analytics_params(
     start_date: date | str | None,
     end_date: date | str | None,
     metrics: Sequence[str] | str | None,
+    source: AnalyticsSource | None = None,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
     if start_date is not None:
@@ -119,6 +124,8 @@ def _serialize_analytics_params(
         params["end_date"] = end_date.isoformat() if isinstance(end_date, date) else end_date
     if metrics is not None:
         params["metrics"] = metrics if isinstance(metrics, str) else ",".join(metrics)
+    if source is not None:
+        params["source"] = source
     return params
 
 
@@ -227,11 +234,14 @@ class PinsResource(SyncAPIResource):
         until: datetime | str | None = None,
         q: str | None = None,
         sort: PinSort | str | None = None,
+        removed: bool | None = None,
     ) -> list[PinResponse]:
         """List pins, newest first by default.
 
         ``q`` searches title, description and link URL; ``sort`` picks the order
-        (both need API 1.34.0+). Use :meth:`list_page` to also get the total.
+        (both need API 1.34.0+). ``removed=True`` keeps only published pins that were
+        deleted on Pinterest, ``False`` leaves them out (API 1.35.0+). Use
+        :meth:`list_page` to also get the total.
         """
         params = _serialize_pin_filters(
             limit=limit,
@@ -244,6 +254,7 @@ class PinsResource(SyncAPIResource):
             until=until,
             q=q,
             sort=sort,
+            removed=removed,
         )
         response = self._request("GET", "/v1/pins", params=params)
         return self._list(PinResponse, response)
@@ -261,6 +272,7 @@ class PinsResource(SyncAPIResource):
         until: datetime | str | None = None,
         q: str | None = None,
         sort: PinSort | str | None = None,
+        removed: bool | None = None,
     ) -> Page[PinResponse]:
         """Same filters as :meth:`list`, plus the total matching pins (API 1.34.0+)."""
         params = _serialize_pin_filters(
@@ -274,6 +286,7 @@ class PinsResource(SyncAPIResource):
             until=until,
             q=q,
             sort=sort,
+            removed=removed,
         )
         response = self._request("GET", "/v1/pins", params=params)
         return self._page(PinResponse, response, limit=limit, offset=offset)
@@ -314,14 +327,21 @@ class PinsResource(SyncAPIResource):
         start_date: date | str | None = None,
         end_date: date | str | None = None,
         metrics: Sequence[str] | str | None = None,
+        source: AnalyticsSource | None = None,
     ) -> PinAnalyticsResponse:
-        """Pinterest analytics for a published pin over a date range (max 90 days)."""
+        """Pinterest analytics for a published pin over a date range.
+
+        ``source`` (API 1.33.0+): ``auto`` (default) reads PinBridge's stored history
+        when it covers the range, ``stored`` forces it (up to 366 days), ``live``
+        asks Pinterest (up to 90 days). A pin deleted on Pinterest is answered from
+        the stored history (API 1.35.0+).
+        """
         response = self._request(
             "GET",
             "/v1/pins/{pin_id}/analytics",
             path_params={"pin_id": pin_id},
             params=_serialize_analytics_params(
-                start_date=start_date, end_date=end_date, metrics=metrics
+                start_date=start_date, end_date=end_date, metrics=metrics, source=source
             ),
         )
         return self._model(PinAnalyticsResponse, response)
@@ -446,11 +466,14 @@ class AsyncPinsResource(AsyncAPIResource):
         until: datetime | str | None = None,
         q: str | None = None,
         sort: PinSort | str | None = None,
+        removed: bool | None = None,
     ) -> list[PinResponse]:
         """List pins, newest first by default.
 
         ``q`` searches title, description and link URL; ``sort`` picks the order
-        (both need API 1.34.0+). Use :meth:`list_page` to also get the total.
+        (both need API 1.34.0+). ``removed=True`` keeps only published pins that were
+        deleted on Pinterest, ``False`` leaves them out (API 1.35.0+). Use
+        :meth:`list_page` to also get the total.
         """
         params = _serialize_pin_filters(
             limit=limit,
@@ -463,6 +486,7 @@ class AsyncPinsResource(AsyncAPIResource):
             until=until,
             q=q,
             sort=sort,
+            removed=removed,
         )
         response = await self._request("GET", "/v1/pins", params=params)
         return self._list(PinResponse, response)
@@ -480,6 +504,7 @@ class AsyncPinsResource(AsyncAPIResource):
         until: datetime | str | None = None,
         q: str | None = None,
         sort: PinSort | str | None = None,
+        removed: bool | None = None,
     ) -> Page[PinResponse]:
         """Same filters as :meth:`list`, plus the total matching pins (API 1.34.0+)."""
         params = _serialize_pin_filters(
@@ -493,6 +518,7 @@ class AsyncPinsResource(AsyncAPIResource):
             until=until,
             q=q,
             sort=sort,
+            removed=removed,
         )
         response = await self._request("GET", "/v1/pins", params=params)
         return self._page(PinResponse, response, limit=limit, offset=offset)
@@ -529,14 +555,21 @@ class AsyncPinsResource(AsyncAPIResource):
         start_date: date | str | None = None,
         end_date: date | str | None = None,
         metrics: Sequence[str] | str | None = None,
+        source: AnalyticsSource | None = None,
     ) -> PinAnalyticsResponse:
-        """Pinterest analytics for a published pin over a date range (max 90 days)."""
+        """Pinterest analytics for a published pin over a date range.
+
+        ``source`` (API 1.33.0+): ``auto`` (default) reads PinBridge's stored history
+        when it covers the range, ``stored`` forces it (up to 366 days), ``live``
+        asks Pinterest (up to 90 days). A pin deleted on Pinterest is answered from
+        the stored history (API 1.35.0+).
+        """
         response = await self._request(
             "GET",
             "/v1/pins/{pin_id}/analytics",
             path_params={"pin_id": pin_id},
             params=_serialize_analytics_params(
-                start_date=start_date, end_date=end_date, metrics=metrics
+                start_date=start_date, end_date=end_date, metrics=metrics, source=source
             ),
         )
         return self._model(PinAnalyticsResponse, response)

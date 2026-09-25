@@ -34,9 +34,11 @@ class PinterestAccountResponse(PinbridgeModel):
     created_at: datetime
     updated_at: datetime
     revoked_at: datetime | None = None
+    token_expires_at: datetime | None = None
     health_status: str | None = None
     health_message: str | None = None
     health_checked_at: datetime | None = None
+    reconnect_required: bool = False
     missing_scopes: list[str] = Field(default_factory=list)
     reconnect_required: bool = False
     token_expires_at: datetime | None = None
@@ -95,6 +97,10 @@ class AccountAnalyticsResponse(PinbridgeModel):
     provider_mode: AnalyticsProviderMode
     totals: dict[str, Any] = Field(default_factory=dict)
     daily: list[AnalyticsDailyMetric] = Field(default_factory=list)
+    # live | stored | simulated (API 1.33.0+).
+    source: str | None = None
+    data_as_of: datetime | None = None
+    history_start: date | None = None
 
 
 class RelatedTermsItem(PinbridgeModel):
