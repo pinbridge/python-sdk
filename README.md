@@ -148,7 +148,7 @@ print(ready.status, ready.database)
 - `revoke_account(account_id)`
 - `list_boards(account_id)`
 - `check_board_access(board_id, account_id=..., fresh=False)` — can this account publish to this board, and why not
-- `account_analytics(account_id, start_date=None, end_date=None, metrics=None)` — impressions, saves, clicks per day (max 90 days)
+- `account_analytics(account_id, start_date=None, end_date=None, metrics=None, source=None, include_daily=None)` — impressions, saves, clicks per day (up to 366 days from stored history, 90 live); `include_daily=False` returns only the totals
 - `list_related_terms(account_id, terms, exact_match=False)`
 - `create_board(BoardCreateRequest | dict)` — `SECRET` needs `boards:write_secret` (accounts connected before API 1.37 must reconnect)
 - `update_board(board_id, BoardUpdateRequest | dict)`
@@ -202,7 +202,7 @@ client.set_bearer_token(switched.access_token)
 - `client.pins.validate(PinCreate | dict)` — dry run: every check the API runs, nothing published
 - `client.pins.create_batch([PinCreate | dict, ...])` — up to 100 pins, per-item outcome
 - `client.pins.update(pin_id, PinUpdate | dict)` — edit title / description / link / alt text / board of a pin that has not published; a published pin raises `APIError` with `code == "pin_already_published"`
-- `client.pins.analytics(pin_id, start_date=None, end_date=None, metrics=None)`
+- `client.pins.analytics(pin_id, start_date=None, end_date=None, metrics=None, source=None, include_daily=None)`
 - `client.pins.import_json(list[PinImportCreate | PinCreate | dict])`
 - `client.pins.import_csv(file, filename=..., content_type=...)`
 - `client.pins.get_import(job_id)`
