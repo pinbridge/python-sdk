@@ -118,8 +118,10 @@ class PinImportCreate(PinCreate):
 class PinUpdate(PinbridgeModel):
     """Partial edit of a pin (``PATCH /v1/pins/{id}``); unset fields are unchanged.
 
-    Published pins are updated on Pinterest too and cannot have fields cleared
-    with ``None``; unpublished pins can.
+    Only pins that have not published (queued, deferred, failed) can be edited.
+    Pinterest's API does not let PinBridge edit a published pin, so the API answers
+    ``409`` and the SDK raises :class:`APIError` with ``code == "pin_already_published"``.
+    Delete the pin and publish a corrected one instead.
     """
 
     title: PinTitle | None = None
