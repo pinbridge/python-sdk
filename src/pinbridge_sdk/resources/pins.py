@@ -292,7 +292,12 @@ class PinsResource(SyncAPIResource):
         return self._page(PinResponse, response, limit=limit, offset=offset)
 
     def update(self, pin_id: UUID | str, data: PinUpdate | Mapping[str, Any]) -> PinResponse:
-        """Edit title, description, link, alt text or board (``PATCH /v1/pins/{id}``)."""
+        """Edit an unpublished pin's title, description, link, alt text or board.
+
+        ``PATCH /v1/pins/{id}``. A published pin cannot be edited: the API answers
+        ``409 pin_already_published`` (:class:`APIError` with that ``code``) because Pinterest's API
+        does not allow PinBridge to edit live pins.
+        """
         response = self._request(
             "PATCH",
             "/v1/pins/{pin_id}",
@@ -524,7 +529,12 @@ class AsyncPinsResource(AsyncAPIResource):
         return self._page(PinResponse, response, limit=limit, offset=offset)
 
     async def update(self, pin_id: UUID | str, data: PinUpdate | Mapping[str, Any]) -> PinResponse:
-        """Edit title, description, link, alt text or board (``PATCH /v1/pins/{id}``)."""
+        """Edit an unpublished pin's title, description, link, alt text or board.
+
+        ``PATCH /v1/pins/{id}``. A published pin cannot be edited: the API answers
+        ``409 pin_already_published`` (:class:`APIError` with that ``code``) because Pinterest's API
+        does not allow PinBridge to edit live pins.
+        """
         response = await self._request(
             "PATCH",
             "/v1/pins/{pin_id}",
