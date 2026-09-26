@@ -114,6 +114,7 @@ def _serialize_analytics_params(
     end_date: date | str | None,
     metrics: Sequence[str] | str | None,
     source: AnalyticsSource | None = None,
+    include_daily: bool | None = None,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
     if start_date is not None:
@@ -126,6 +127,8 @@ def _serialize_analytics_params(
         params["metrics"] = metrics if isinstance(metrics, str) else ",".join(metrics)
     if source is not None:
         params["source"] = source
+    if include_daily is not None:
+        params["include_daily"] = "true" if include_daily else "false"
     return params
 
 
@@ -333,6 +336,7 @@ class PinsResource(SyncAPIResource):
         end_date: date | str | None = None,
         metrics: Sequence[str] | str | None = None,
         source: AnalyticsSource | None = None,
+        include_daily: bool | None = None,
     ) -> PinAnalyticsResponse:
         """Pinterest analytics for a published pin over a date range.
 
@@ -340,13 +344,20 @@ class PinsResource(SyncAPIResource):
         when it covers the range, ``stored`` forces it (up to 366 days), ``live``
         asks Pinterest (up to 90 days). A pin deleted on Pinterest is answered from
         the stored history (API 1.35.0+).
+
+        ``include_daily=False`` (API 1.38.0+) returns only the range totals, with an
+        empty ``daily`` list; older APIs ignore it.
         """
         response = self._request(
             "GET",
             "/v1/pins/{pin_id}/analytics",
             path_params={"pin_id": pin_id},
             params=_serialize_analytics_params(
-                start_date=start_date, end_date=end_date, metrics=metrics, source=source
+                start_date=start_date,
+                end_date=end_date,
+                metrics=metrics,
+                source=source,
+                include_daily=include_daily,
             ),
         )
         return self._model(PinAnalyticsResponse, response)
@@ -566,6 +577,7 @@ class AsyncPinsResource(AsyncAPIResource):
         end_date: date | str | None = None,
         metrics: Sequence[str] | str | None = None,
         source: AnalyticsSource | None = None,
+        include_daily: bool | None = None,
     ) -> PinAnalyticsResponse:
         """Pinterest analytics for a published pin over a date range.
 
@@ -573,13 +585,20 @@ class AsyncPinsResource(AsyncAPIResource):
         when it covers the range, ``stored`` forces it (up to 366 days), ``live``
         asks Pinterest (up to 90 days). A pin deleted on Pinterest is answered from
         the stored history (API 1.35.0+).
+
+        ``include_daily=False`` (API 1.38.0+) returns only the range totals, with an
+        empty ``daily`` list; older APIs ignore it.
         """
         response = await self._request(
             "GET",
             "/v1/pins/{pin_id}/analytics",
             path_params={"pin_id": pin_id},
             params=_serialize_analytics_params(
-                start_date=start_date, end_date=end_date, metrics=metrics, source=source
+                start_date=start_date,
+                end_date=end_date,
+                metrics=metrics,
+                source=source,
+                include_daily=include_daily,
             ),
         )
         return self._model(PinAnalyticsResponse, response)
