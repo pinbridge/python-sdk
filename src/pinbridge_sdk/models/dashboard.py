@@ -19,13 +19,16 @@ class DashboardGranularity(str, Enum):
 class DashboardPinStats(PinbridgeModel):
     """Pin outcomes in a period (API 1.35.0+ counts them by when they happened).
 
-    ``total`` is the pins submitted in the period. ``by_status["published"]``
-    counts pins published in the period and ``by_status["failed"]`` pins that
-    failed in it and are still failed; the queued, deferred and publishing
-    counts are pins submitted in the period that are still waiting.
+    ``by_status["published"]`` counts pins published in the period and
+    ``by_status["failed"]`` pins that failed in it and are still failed; the
+    queued, deferred and publishing counts are pins submitted in the period that
+    are still waiting. ``total`` is the sum of ``by_status`` and ``submitted``
+    the pins submitted in the period (API 1.38.0+; older APIs report
+    submissions in ``total`` and leave ``submitted`` as ``None``).
     """
 
     total: int
+    submitted: int | None = None
     by_status: dict[str, int]
     success_rate: float | None = None
 

@@ -108,18 +108,26 @@ class PinterestResource(SyncAPIResource):
         end_date: date | str | None = None,
         metrics: Sequence[str] | str | None = None,
         source: AnalyticsSource | None = None,
+        include_daily: bool | None = None,
     ) -> AccountAnalyticsResponse:
         """Pinterest analytics for a whole connected account over a date range.
 
         ``source`` (API 1.33.0+): ``auto`` (default), ``stored`` (up to 366 days) or
         ``live`` (up to 90 days).
+
+        ``include_daily=False`` (API 1.38.0+) returns only the range totals, with an
+        empty ``daily`` list; older APIs ignore it.
         """
         response = self._request(
             "GET",
             "/v1/pinterest/accounts/{account_id}/analytics",
             path_params={"account_id": account_id},
             params=_serialize_analytics_params(
-                start_date=start_date, end_date=end_date, metrics=metrics, source=source
+                start_date=start_date,
+                end_date=end_date,
+                metrics=metrics,
+                source=source,
+                include_daily=include_daily,
             ),
         )
         return self._model(AccountAnalyticsResponse, response)
@@ -253,18 +261,26 @@ class AsyncPinterestResource(AsyncAPIResource):
         end_date: date | str | None = None,
         metrics: Sequence[str] | str | None = None,
         source: AnalyticsSource | None = None,
+        include_daily: bool | None = None,
     ) -> AccountAnalyticsResponse:
         """Pinterest analytics for a whole connected account over a date range.
 
         ``source`` (API 1.33.0+): ``auto`` (default), ``stored`` (up to 366 days) or
         ``live`` (up to 90 days).
+
+        ``include_daily=False`` (API 1.38.0+) returns only the range totals, with an
+        empty ``daily`` list; older APIs ignore it.
         """
         response = await self._request(
             "GET",
             "/v1/pinterest/accounts/{account_id}/analytics",
             path_params={"account_id": account_id},
             params=_serialize_analytics_params(
-                start_date=start_date, end_date=end_date, metrics=metrics, source=source
+                start_date=start_date,
+                end_date=end_date,
+                metrics=metrics,
+                source=source,
+                include_daily=include_daily,
             ),
         )
         return self._model(AccountAnalyticsResponse, response)

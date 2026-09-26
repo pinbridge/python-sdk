@@ -113,6 +113,8 @@ def _assert_summary(summary: DashboardSummaryResponse) -> None:
     assert summary.timezone == "Asia/Tokyo"
     assert summary.start.utcoffset().total_seconds() == 9 * 3600
     assert summary.pins.total == 5
+    assert summary.pins.submitted == 4
+    assert summary.previous_pins.submitted is None  # an API before 1.38.0
     assert summary.pins.by_status["published"] == 3
     assert summary.pins.success_rate == 0.75
     assert summary.previous_pins.success_rate is None

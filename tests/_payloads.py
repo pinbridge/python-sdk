@@ -688,7 +688,7 @@ def dashboard_summary_response(*, account_id: str | None = None) -> dict:
         "previous_start": "2026-08-25T00:00:00+09:00",
         "previous_end": "2026-09-01T00:00:00+09:00",
         "account_id": account_id,
-        "pins": {"total": 5, "by_status": pin_statuses, "success_rate": 0.75},
+        "pins": {"total": 5, "submitted": 4, "by_status": pin_statuses, "success_rate": 0.75},
         "previous_pins": {
             "total": 0,
             "by_status": dict.fromkeys(pin_statuses, 0),
