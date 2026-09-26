@@ -143,6 +143,12 @@ class PinterestResource(SyncAPIResource):
         return self._model(RelatedTermsResponse, response)
 
     def create_board(self, data: BoardCreateRequest | Mapping[str, Any]) -> BoardResponse:
+        """Create a board on Pinterest.
+
+        ``privacy="SECRET"`` needs Pinterest's ``boards:write_secret`` scope. Accounts
+        connected before API 1.37 lack it and get ``409 scope_missing``
+        (:class:`APIError` with that ``code``) until they reconnect.
+        """
         payload = (
             data.model_dump(mode="json", exclude_none=True)
             if isinstance(data, BoardCreateRequest)
@@ -169,6 +175,13 @@ class PinterestResource(SyncAPIResource):
         return self._model(BoardResponse, response)
 
     def delete_board(self, board_id: str, *, account_id: UUID | str) -> None:
+        """Delete a board on Pinterest, with every pin on it. Irreversible.
+
+        ``DELETE /v1/pinterest/boards/{id}`` (needs the destructive key scope).
+        PinBridge's published pins on the board are flagged
+        ``removed_from_pinterest_at``. An unknown board raises ``NotFoundError``
+        (``board_not_found``).
+        """
         self._request(
             "DELETE",
             "/v1/pinterest/boards/{board_id}",
@@ -275,6 +288,12 @@ class AsyncPinterestResource(AsyncAPIResource):
         return self._model(RelatedTermsResponse, response)
 
     async def create_board(self, data: BoardCreateRequest | Mapping[str, Any]) -> BoardResponse:
+        """Create a board on Pinterest.
+
+        ``privacy="SECRET"`` needs Pinterest's ``boards:write_secret`` scope. Accounts
+        connected before API 1.37 lack it and get ``409 scope_missing``
+        (:class:`APIError` with that ``code``) until they reconnect.
+        """
         payload = (
             data.model_dump(mode="json", exclude_none=True)
             if isinstance(data, BoardCreateRequest)
@@ -301,6 +320,13 @@ class AsyncPinterestResource(AsyncAPIResource):
         return self._model(BoardResponse, response)
 
     async def delete_board(self, board_id: str, *, account_id: UUID | str) -> None:
+        """Delete a board on Pinterest, with every pin on it. Irreversible.
+
+        ``DELETE /v1/pinterest/boards/{id}`` (needs the destructive key scope).
+        PinBridge's published pins on the board are flagged
+        ``removed_from_pinterest_at``. An unknown board raises ``NotFoundError``
+        (``board_not_found``).
+        """
         await self._request(
             "DELETE",
             "/v1/pinterest/boards/{board_id}",
