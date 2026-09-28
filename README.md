@@ -193,10 +193,10 @@ client.set_bearer_token(switched.access_token)
 
 - `client.assets.upload_image(file, filename=..., content_type=...)`
 - `client.assets.upload_video(file, filename=..., content_type=...)`
-- `client.assets.list(workspace_id=None, sort="created_at_desc", limit=50, offset=0, q=None, asset_type=None, in_use=None, since=None, until=None)` — `total` counts every match; `q` searches file names, `in_use` keeps assets referenced (or not) by a pin
+- `client.assets.list(workspace_id=None, sort="created_at_desc", limit=50, offset=0, q=None, asset_type=None, in_use=None, since=None, until=None)` — `total` counts every match; `q` searches file names, `in_use` keeps assets used (or not) by a pin or by a scheduled pin that has not run yet
 - `client.assets.get(asset_id)`
 - `client.assets.get_content(asset_id)`
-- `client.assets.delete(asset_id, confirm=False)`
+- `client.assets.delete(asset_id, confirm=False)` — refuses (`requires_confirmation=True`) while a pin or a pending scheduled pin uses the asset
 - `client.assets.bulk_delete([asset_id, ...], confirm=False)`
 - `client.pins.create(PinCreate | dict)`
 - `client.pins.validate(PinCreate | dict)` — dry run: every check the API runs, nothing published
@@ -230,8 +230,9 @@ else:
     print([(c.name, c.code, c.remediation) for c in check.checks if c.status.value == "failed"])
 ```
 
-Deletes on an asset referenced by pins return `requires_confirmation=True`; pass `confirm=True`
-to force the deletion. Bulk actions (`bulk_delete`, `bulk_retry`) return a `BulkOperationResponse`
+Deletes on an asset used by pins, or by scheduled pins that have not run yet (API 1.38.1+), return
+`requires_confirmation=True`; pass `confirm=True` to force the deletion. An unpublished pin or
+schedule that used the asset then fails to publish. Bulk actions (`bulk_delete`, `bulk_retry`) return a `BulkOperationResponse`
 with per-item `results` (`succeeded` / `skipped` / `failed`).
 
 ```python
