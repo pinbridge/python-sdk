@@ -167,7 +167,8 @@ class AssetsResource(SyncAPIResource):
         """List the organization's assets; ``total`` counts every match.
 
         ``q`` searches the original file name, ``asset_type`` keeps images or
-        videos, ``in_use`` keeps assets referenced (or not) by a pin, and
+        videos, ``in_use`` keeps assets used (or not) by a pin or by a scheduled
+        pin that has not run yet, and
         ``since``/``until`` bound the upload time. These filters and the
         ``size_asc`` sort need API 1.34.0+.
         """
@@ -189,6 +190,14 @@ class AssetsResource(SyncAPIResource):
         return self._model(AssetListResponse, response)
 
     def delete(self, asset_id: UUID | str, *, confirm: bool = False) -> AssetDeleteResponse:
+        """Delete an uploaded asset.
+
+        While a pin or a scheduled pin that has not run yet uses the asset, nothing
+        is deleted: the response has ``deleted=False``, ``requires_confirmation=True``
+        and ``referenced_pin_count``. ``confirm=True`` deletes it anyway; pins keep
+        their record without it and an unpublished pin or schedule that used it
+        fails to publish. Counting scheduled pins needs API 1.38.1+.
+        """
         response = self._request(
             "DELETE",
             "/v1/assets/{asset_id}",
@@ -292,7 +301,8 @@ class AsyncAssetsResource(AsyncAPIResource):
         """List the organization's assets; ``total`` counts every match.
 
         ``q`` searches the original file name, ``asset_type`` keeps images or
-        videos, ``in_use`` keeps assets referenced (or not) by a pin, and
+        videos, ``in_use`` keeps assets used (or not) by a pin or by a scheduled
+        pin that has not run yet, and
         ``since``/``until`` bound the upload time. These filters and the
         ``size_asc`` sort need API 1.34.0+.
         """
@@ -314,6 +324,14 @@ class AsyncAssetsResource(AsyncAPIResource):
         return self._model(AssetListResponse, response)
 
     async def delete(self, asset_id: UUID | str, *, confirm: bool = False) -> AssetDeleteResponse:
+        """Delete an uploaded asset.
+
+        While a pin or a scheduled pin that has not run yet uses the asset, nothing
+        is deleted: the response has ``deleted=False``, ``requires_confirmation=True``
+        and ``referenced_pin_count``. ``confirm=True`` deletes it anyway; pins keep
+        their record without it and an unpublished pin or schedule that used it
+        fails to publish. Counting scheduled pins needs API 1.38.1+.
+        """
         response = await self._request(
             "DELETE",
             "/v1/assets/{asset_id}",
