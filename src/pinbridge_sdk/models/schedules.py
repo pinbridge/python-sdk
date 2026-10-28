@@ -13,6 +13,7 @@ from .common import ScheduleStatus
 
 ScheduleTitle = Annotated[str, StringConstraints(max_length=100)]
 ScheduleDescription = Annotated[str, StringConstraints(max_length=800)]
+ScheduleAltText = Annotated[str, StringConstraints(max_length=500)]
 
 # Sort orders accepted by ``GET /v1/schedules`` (API 1.34.0+); ``run_at_asc`` = next run first.
 ScheduleSort = Literal[
@@ -33,6 +34,8 @@ class ScheduleCreate(PinbridgeModel):
     board_id: str
     title: ScheduleTitle
     description: ScheduleDescription | None = None
+    # Accepted by the API from 1.64.2; older APIs drop it.
+    alt_text: ScheduleAltText | None = None
     cover_image_url: HttpUrl | None = None
     cover_image_asset_id: UUID | None = None
     link_url: HttpUrl | None = None
@@ -84,6 +87,7 @@ class ScheduleUpdate(PinbridgeModel):
     board_id: str | None = None
     title: ScheduleTitle | None = None
     description: ScheduleDescription | None = None
+    alt_text: ScheduleAltText | None = None
     link_url: HttpUrl | None = None
     image_url: HttpUrl | None = None
     asset_id: UUID | None = None

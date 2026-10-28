@@ -109,6 +109,7 @@ schedule = client.schedules.create(
         board_id="123-board",
         title="Scheduled pin",
         description="Created from docs",
+        alt_text="Bowl of glazed carrots with fresh herbs",
         link_url="https://example.com",
         asset_id=asset.id,
     )
@@ -129,6 +130,6 @@ client.schedules.cancel(schedule.id)
 - Use `assets.upload_image()` or `assets.upload_video()` for local files
 - Keep `image_url` for already hosted images
 - Use uploaded `asset_id` values for video publishes and schedules
-- Optional Pinterest metadata on immediate publishes: `related_terms`, `alt_text`, `dominant_color`
+- Optional Pinterest metadata: `alt_text` on immediate publishes and schedules (schedules need API 1.64.2 or later), `related_terms` and `dominant_color` on immediate publishes only
 - SDK request validation enforces Pinterest limits: `title <= 100`, `description <= 800`, `alt_text <= 500`, URLs `<= 2048`
 - Poll `jobs.get()` or fetch the saved pin/schedule record instead of assuming success immediately
