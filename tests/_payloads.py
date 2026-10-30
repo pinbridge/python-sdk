@@ -166,7 +166,6 @@ def pin_response() -> dict:
         "media_type": "image",
         "title": "A Pin",
         "description": "Pin description",
-        "related_terms": ["meal prep", "glazed carrots"],
         "alt_text": "Bowl of glazed carrots with herbs",
         "dominant_color": "#E88A2D",
         "cover_image_url": "https://example.com/video-cover.jpg",

@@ -70,7 +70,6 @@ def test_typed_list_parsing(base_url: str) -> None:
             "media_type": "image",
             "title": "Pin title",
             "description": None,
-            "related_terms": ["meal prep"],
             "alt_text": "Pin alt text",
             "dominant_color": "#E88A2D",
             "cover_image_url": None,

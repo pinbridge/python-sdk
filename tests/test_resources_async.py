@@ -175,7 +175,7 @@ async def test_async_resource_methods_end_to_end() -> None:
         if (method, path) == ("POST", "/v1/pins"):
             payload = _request_json(request)
             assert payload["alt_text"] == "Bowl of glazed carrots with herbs"
-            assert payload["related_terms"] == ["meal prep", "glazed carrots"]
+            assert "related_terms" not in payload
             assert payload["dominant_color"] == "#E88A2D"
             return httpx.Response(201, json=pin_response())
         if (method, path) == ("POST", "/v1/pins/imports/json"):
@@ -342,7 +342,6 @@ async def test_async_resource_methods_end_to_end() -> None:
                 title="A Pin",
                 description="Pin description",
                 link_url="https://example.com",
-                related_terms=["meal prep", "glazed carrots"],
                 alt_text="Bowl of glazed carrots with herbs",
                 dominant_color="#e88a2d",
                 asset_id=UUID3,

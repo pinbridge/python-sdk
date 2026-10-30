@@ -328,7 +328,7 @@ def test_request_models_reject_invalid_payloads(
         model_cls.model_validate(payload)
 
 
-def test_pin_create_normalizes_related_terms_and_dominant_color() -> None:
+def test_pin_create_normalizes_dominant_color() -> None:
     model = PinCreate.model_validate(
         {
             "account_id": "44444444-4444-4444-4444-444444444444",
@@ -336,10 +336,21 @@ def test_pin_create_normalizes_related_terms_and_dominant_color() -> None:
             "title": "Pin",
             "image_url": "https://example.com/pin.jpg",
             "idempotency_key": "idem-1",
-            "related_terms": " meals, , carrots ,meal prep ",
             "dominant_color": "6e7874",
         }
     )
 
-    assert model.related_terms == ["meals", "carrots", "meal prep"]
     assert model.dominant_color == "#6E7874"
+
+
+def test_pin_create_drops_related_terms_from_older_code() -> None:
+    model = PinCreate(
+        account_id="44444444-4444-4444-4444-444444444444",
+        board_id="board-1",
+        title="Pin",
+        image_url="https://example.com/pin.jpg",
+        idempotency_key="idem-1",
+        related_terms=["meals"],
+    )
+
+    assert "related_terms" not in model.model_dump()
