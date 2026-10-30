@@ -2,9 +2,14 @@
 
 Official Python SDK for the PinBridge API, including multipart image and video asset upload support for local publishing workflows.
 
-Documentation in this repository is built with MkDocs. After installing docs dependencies,
-run `python scripts/generate_reference.py` and `mkdocs serve` from the `python-sdk/`
-directory for a local docs site.
+## Documentation
+
+- Python SDK guide: https://www.pinbridge.io/docs/python-sdk/
+- API reference: https://www.pinbridge.io/docs/api/
+- Runnable examples: https://github.com/pinbridge/python-examples
+
+The `docs/` folder holds the MkDocs source for the SDK reference. `docs/development.md`
+explains how to build it locally.
 
 ## Installation
 
@@ -23,20 +28,6 @@ pip install -e .[dev]
 - Python `>=3.10`
 - PinBridge API URL (default: `https://api.pinbridge.io`)
 - Authentication via API key and/or bearer token
-
-## Publish to PyPI
-
-After updating and committing the target SDK version:
-
-3. Create and push a matching version tag:
-
-```bash
-git tag v1.1.0
-git push origin main
-git push origin v1.0.2
-```
-
-4. Wait for the GitHub Actions `Publish` workflow to finish and verify the package on PyPI.
 
 ## Client Initialization
 

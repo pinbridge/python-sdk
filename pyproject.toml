@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pinbridge-sdk"
-version = "1.10.4"
+version = "1.10.5"
 description = "Official Python SDK for the PinBridge API"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 authors = [{ name = "PinBridge" }]
 keywords = ["pinbridge", "sdk", "api", "pinterest"]
-urls = { Homepage = "https://pinbridge.io", Documentation = "https://docs.pinbridge.io", Repository = "https://github.com/pinbridge/python-sdk", Issues = "https://github.com/pinbridge/python-sdk/issues" }
+urls = { Homepage = "https://pinbridge.io", Documentation = "https://www.pinbridge.io/docs/python-sdk/", Repository = "https://github.com/pinbridge/python-sdk", Issues = "https://github.com/pinbridge/python-sdk/issues" }
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -41,9 +41,7 @@ dev = [
 docs = [
   "mkdocs>=1.6.0,<2",
   "mkdocs-material>=9.5.0,<10",
-  "mkdocstrings[python]>=0.26.0,<1",
-  # pymdown-extensions 12 changed Highlight(), which mkdocstrings 0.x calls.
-  "pymdown-extensions>=10.0,<12",
+  "mkdocstrings[python]>=1.0,<2",
 ]
 
 [tool.hatch.build.targets.wheel]

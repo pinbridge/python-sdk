@@ -20,7 +20,7 @@ No API token secret is required when trusted publishing is configured correctly.
 
 ## Release process
 
-1. Update version in `pyproject.toml` and `src/pinbridge_sdk/__init__.py`.
+1. Update version in `pyproject.toml` and `src/pinbridge_sdk/_version.py`.
 2. Commit and push to `main`.
 3. Create and push a version tag:
 
