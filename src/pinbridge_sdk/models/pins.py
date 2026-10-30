@@ -35,7 +35,6 @@ class PinCreate(PinbridgeModel):
     board_id: str
     title: PinTitle
     description: PinDescription | None = None
-    related_terms: list[str] | None = None
     alt_text: PinAltText | None = None
     dominant_color: str | None = None
     cover_image_url: HttpUrl | None = None
@@ -54,16 +53,6 @@ class PinCreate(PinbridgeModel):
         if self.cover_image_url is not None and self.cover_image_asset_id is not None:
             raise ValueError("Provide either cover_image_url or cover_image_asset_id, not both")
         return self
-
-    @field_validator("related_terms", mode="before")
-    @classmethod
-    def validate_related_terms(cls, value: list[str] | str | None) -> list[str] | None:
-        if value is None:
-            return None
-        if isinstance(value, str):
-            value = [term.strip() for term in value.split(",")]
-        cleaned = [term.strip() for term in value if isinstance(term, str) and term.strip()]
-        return cleaned or None
 
     @field_validator("dominant_color")
     @classmethod
@@ -247,6 +236,7 @@ class PinResponse(PinbridgeModel):
     media_type: PinMediaType
     title: str
     description: str | None = None
+    # Deprecated: None for pins created from API 1.65.1 on. Kept for code that reads it.
     related_terms: list[str] | None = None
     alt_text: str | None = None
     dominant_color: str | None = None
