@@ -241,7 +241,6 @@ pin = client.pins.create(
         title="Hello",
         description="From SDK",
         alt_text="Descriptive alt text for accessibility",
-        related_terms=["meal prep", "vegetables"],
         dominant_color="#E88A2D",
         asset_id=asset.id,
         idempotency_key="my-idempotency-key",
