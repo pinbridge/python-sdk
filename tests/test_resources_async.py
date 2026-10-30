@@ -175,7 +175,6 @@ async def test_async_resource_methods_end_to_end() -> None:
         if (method, path) == ("POST", "/v1/pins"):
             payload = _request_json(request)
             assert payload["alt_text"] == "Bowl of glazed carrots with herbs"
-            assert "related_terms" not in payload
             assert payload["dominant_color"] == "#E88A2D"
             return httpx.Response(201, json=pin_response())
         if (method, path) == ("POST", "/v1/pins/imports/json"):

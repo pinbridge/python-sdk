@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from _payloads import pin_response
 from pydantic import ValidationError
 
 from pinbridge_sdk.models import (
@@ -10,6 +11,7 @@ from pinbridge_sdk.models import (
     LoginRequest,
     PinCreate,
     PinImportCreate,
+    PinResponse,
     PricingCatalogResponse,
     RegisterRequest,
     ScheduleCreate,
@@ -354,3 +356,10 @@ def test_pin_create_drops_related_terms_from_older_code() -> None:
     )
 
     assert "related_terms" not in model.model_dump()
+
+
+def test_pin_response_keeps_related_terms_for_code_that_reads_it() -> None:
+    assert PinResponse.model_validate(pin_response()).related_terms is None
+
+    older_pin = PinResponse.model_validate({**pin_response(), "related_terms": ["meals"]})
+    assert older_pin.related_terms == ["meals"]

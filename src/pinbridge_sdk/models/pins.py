@@ -236,7 +236,7 @@ class PinResponse(PinbridgeModel):
     media_type: PinMediaType
     title: str
     description: str | None = None
-    # The API stopped returning this in 1.65.1, so it is None there. Kept for code that reads it.
+    # Deprecated: None for pins created from API 1.65.1 on. Kept for code that reads it.
     related_terms: list[str] | None = None
     alt_text: str | None = None
     dominant_color: str | None = None

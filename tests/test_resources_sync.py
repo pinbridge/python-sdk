@@ -213,7 +213,6 @@ def test_sync_resource_methods_end_to_end() -> None:
             payload = _request_json(request)
             assert payload["idempotency_key"] == "idem-123"
             assert payload["alt_text"] == "Bowl of glazed carrots with herbs"
-            assert "related_terms" not in payload
             assert payload["dominant_color"] == "#E88A2D"
             return httpx.Response(201, json=pin_response())
 
