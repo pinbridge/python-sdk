@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import HttpUrl, StringConstraints, field_validator, model_validator
+from pydantic import Field, HttpUrl, StringConstraints, field_validator, model_validator
 
 from .base import PinbridgeModel
 from .common import ScheduleStatus
@@ -121,6 +121,32 @@ class ScheduleUpdate(PinbridgeModel):
         return value
 
 
+class ScheduleWarning(PinbridgeModel):
+    """Something to know about a schedule that was still created.
+
+    ``code`` is ``quota_may_be_exceeded`` (the schedule's month already has as many pins
+    as the plan includes) or ``media_link_may_expire`` (API 1.87.0+: ``image_url`` or
+    ``cover_image_url`` may stop working before ``run_at``). New codes may appear.
+    """
+
+    code: str
+    message: str
+    remediation: str | None = None
+    # media_link_may_expire: which link, and when it stops working if the link says so.
+    field: str | None = None
+    expires_at: datetime | None = None
+    # quota_may_be_exceeded: the limit and the plan that would cover it.
+    limit_type: str | None = None
+    plan: str | None = None
+    plan_name: str | None = None
+    limit: int | None = None
+    used: int | None = None
+    recommended_plan: str | None = None
+    recommended_plan_name: str | None = None
+    recommended_limit: int | None = None
+    upgrade_url: str | None = None
+
+
 class ScheduleResponse(PinbridgeModel):
     id: UUID
     workspace_id: UUID
@@ -132,3 +158,5 @@ class ScheduleResponse(PinbridgeModel):
     pin_id: UUID | None = None
     created_at: datetime
     updated_at: datetime
+    # Returned by create and update; empty when nothing needs attention.
+    warnings: list[ScheduleWarning] = Field(default_factory=list)
