@@ -114,7 +114,15 @@ schedule = client.schedules.create(
     )
 )
 print(schedule.id)
+for warning in schedule.warnings:
+    print(warning.code, warning.message)
 ```
+
+The schedule is created even when `warnings` is not empty. `media_link_may_expire` means
+`image_url` or `cover_image_url` may stop working before `run_at` (a Canva download, a
+Dropbox temporary link, a signed link that ends earlier); upload the file and use
+`asset_id` instead. `quota_may_be_exceeded` means the month already has as many pins as
+the plan includes.
 
 ## Cancel A Schedule
 

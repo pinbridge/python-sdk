@@ -130,7 +130,13 @@ from .projects import (
     ProjectSwitchResponse,
     SwitchProjectRequest,
 )
-from .schedules import ScheduleCreate, ScheduleResponse, ScheduleSort, ScheduleUpdate
+from .schedules import (
+    ScheduleCreate,
+    ScheduleResponse,
+    ScheduleSort,
+    ScheduleUpdate,
+    ScheduleWarning,
+)
 from .system import (
     HealthResponse,
     RateMeterAccount,
@@ -267,6 +273,7 @@ __all__ = [
     "ScheduleCreate",
     "ScheduleUpdate",
     "ScheduleResponse",
+    "ScheduleWarning",
     "ScheduleSort",
     "ScheduleStatus",
     "TeamActionResponse",
