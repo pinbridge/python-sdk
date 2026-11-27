@@ -706,3 +706,71 @@ def dashboard_summary_response(*, account_id: str | None = None) -> dict:
         "schedules": {"by_status": {"scheduled": 0, "done": 1}, "upcoming": 2},
         "import_jobs": None if account_id else {"by_status": {"completed": 1}},
     }
+
+
+def template_response(*, source: str = "workspace") -> dict:
+    """One entry of ``GET /v1/templates``, as the API sends it."""
+    own = source == "workspace"
+    return {
+        "id": UUID1,
+        "key": "recipe-card",
+        "name": "Recipe card",
+        "description": "Big title over a food photo",
+        "niches": ["food", "diy"],
+        "niche": "food",
+        "tags": ["recipe", "dinner"],
+        "source": source,
+        "version": 3,
+        "visibility": "public",
+        "maker": {"name": "Outfit Notes" if own else None},
+        "review": (
+            {
+                "status": "approved",
+                "note": None,
+                "submitted_at": TS,
+                "reviewed_at": TS,
+                "gallery_version": 2,
+            }
+            if own
+            else None
+        ),
+        "copied_from": None,
+        "copies_count": 4,
+        "pins_count": 12,
+        "uses_custom_fonts": False,
+        "uses_uploads": False,
+        "created_at": TS,
+        "updated_at": TS,
+    }
+
+
+def template_detail_response() -> dict:
+    """``GET /v1/templates/{id}``: the list entry plus its definition and preview values."""
+    return {
+        **template_response(),
+        "copied_from": {"id": UUID2, "name": "Gallery recipe card", "version": 1},
+        "definition": {
+            "format": "pin-template",
+            "format_version": 1,
+            "id": "recipe-card",
+            "name": "Recipe card",
+            "canvas": {"width": 1000, "height": 1500, "background": "#FFFFFF"},
+            "inputs": {
+                "title": {"type": "text", "label": "Title", "required": True, "max_length": 60},
+                "photo": {"type": "image", "label": "Photo", "required": True},
+                "accent": {"type": "color", "default": "#D81E2F"},
+                "servings": {"type": "number", "min": 1, "max": 12},
+            },
+            "root": {"type": "frame", "children": []},
+        },
+        "sample_inputs": {"title": "Lemon pasta", "photo": "niche_food_1.jpg"},
+    }
+
+
+def api_error_body(code: str, message: str, **extra: object) -> dict:
+    """An ``APIError`` body as the API renders it: the envelope twice, under detail and error."""
+    error = {"code": code, "message": message, **extra}
+    return {
+        "detail": {"error": error, "message": message, "code": code},
+        "error": {**error, "request_id": "req-1"},
+    }

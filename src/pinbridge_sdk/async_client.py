@@ -28,6 +28,7 @@ from .resources import (
     AsyncSchedulesResource,
     AsyncSystemResource,
     AsyncTeamResource,
+    AsyncTemplatesResource,
     AsyncWebhooksResource,
 )
 from .resources.base import AsyncAPIResource
@@ -51,6 +52,7 @@ class AsyncPinbridgeClient:
         "projects": AsyncProjectsResource,
         "pins": AsyncPinsResource,
         "schedules": AsyncSchedulesResource,
+        "templates": AsyncTemplatesResource,
         "webhooks": AsyncWebhooksResource,
         "rate_meter": AsyncRateMeterResource,
         "jobs": AsyncJobsResource,
@@ -130,8 +132,11 @@ class AsyncPinbridgeClient:
         headers: HeadersLike | None = None,
         content: str | bytes | None = None,
         follow_redirects: bool | None = None,
+        timeout: httpx.Timeout | None = None,
     ) -> httpx.Response:
+        """Send a request; ``timeout`` replaces the client's timeout for this one only."""
         url = self._core.build_url(path, path_params)
+        extra: dict[str, Any] = {} if timeout is None else {"timeout": timeout}
         response = await self._http.request(
             method,
             url,
@@ -144,6 +149,7 @@ class AsyncPinbridgeClient:
             follow_redirects=(
                 self._core.follow_redirects if follow_redirects is None else follow_redirects
             ),
+            **extra,
         )
         if response.status_code >= 400:
             raise map_api_error(response)

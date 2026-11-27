@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 import httpx
 
+from .._client_base import template_draw_timeout
 from .._types import HeadersLike, PathValue, RequestData, RequestFiles, RequestJson
 from ..models.base import PinbridgeModel
 from ..models.pagination import Page
@@ -49,6 +50,7 @@ class SyncAPIResource:
         headers: HeadersLike | None = None,
         content: str | bytes | None = None,
         follow_redirects: bool | None = None,
+        timeout: httpx.Timeout | None = None,
     ) -> httpx.Response:
         return self._client.request(
             method,
@@ -61,7 +63,14 @@ class SyncAPIResource:
             headers=headers,
             content=content,
             follow_redirects=follow_redirects,
+            timeout=timeout,
         )
+
+    def _draw_timeout(self, payload: Mapping[str, Any]) -> httpx.Timeout | None:
+        """A longer read timeout when the payload draws a pin from a template."""
+        if payload.get("template_inputs") is None:
+            return None
+        return template_draw_timeout(self._client._http.timeout)
 
     @staticmethod
     def _json(response: httpx.Response) -> Any:
@@ -109,6 +118,7 @@ class AsyncAPIResource:
         headers: HeadersLike | None = None,
         content: str | bytes | None = None,
         follow_redirects: bool | None = None,
+        timeout: httpx.Timeout | None = None,
     ) -> httpx.Response:
         return await self._client.request(
             method,
@@ -121,7 +131,14 @@ class AsyncAPIResource:
             headers=headers,
             content=content,
             follow_redirects=follow_redirects,
+            timeout=timeout,
         )
+
+    def _draw_timeout(self, payload: Mapping[str, Any]) -> httpx.Timeout | None:
+        """A longer read timeout when the payload draws a pin from a template."""
+        if payload.get("template_inputs") is None:
+            return None
+        return template_draw_timeout(self._client._http.timeout)
 
     @staticmethod
     def _json(response: httpx.Response) -> Any:

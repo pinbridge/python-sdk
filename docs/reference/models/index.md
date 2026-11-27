@@ -18,4 +18,5 @@
 - [Schedules](schedules.md)
 - [System](system.md)
 - [Team](team.md)
+- [Templates](templates.md)
 - [Webhooks](webhooks.md)

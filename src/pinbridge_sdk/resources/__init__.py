@@ -19,6 +19,7 @@ from .projects import AsyncProjectsResource, ProjectsResource
 from .schedules import AsyncSchedulesResource, SchedulesResource
 from .system import AsyncSystemResource, SystemResource
 from .team import AsyncTeamResource, TeamResource
+from .templates import AsyncTemplatesResource, TemplatesResource
 from .webhooks import AsyncWebhooksResource, WebhooksResource
 
 __all__ = [
@@ -41,6 +42,7 @@ __all__ = [
     "AsyncSchedulesResource",
     "AsyncSystemResource",
     "AsyncTeamResource",
+    "AsyncTemplatesResource",
     "AsyncWebhooksResource",
     "AuthResource",
     "BillingResource",
@@ -55,5 +57,6 @@ __all__ = [
     "SchedulesResource",
     "SystemResource",
     "TeamResource",
+    "TemplatesResource",
     "WebhooksResource",
 ]

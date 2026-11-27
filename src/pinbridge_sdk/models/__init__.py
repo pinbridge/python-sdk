@@ -157,6 +157,17 @@ from .team import (
     TeamMembersListResponse,
     TeamMemberUpdateRequest,
 )
+from .templates import (
+    TemplateCopiedFrom,
+    TemplateDetailResponse,
+    TemplateInput,
+    TemplateInputProblem,
+    TemplateMaker,
+    TemplateResponse,
+    TemplateReview,
+    TemplateSort,
+    TemplateSource,
+)
 from .webhooks import WebhookCreate, WebhookDeliveryResponse, WebhookResponse, WebhookUpdate
 
 __all__ = [
@@ -286,6 +297,15 @@ __all__ = [
     "TeamMemberResponse",
     "TeamMembersListResponse",
     "TeamMemberUpdateRequest",
+    "TemplateCopiedFrom",
+    "TemplateDetailResponse",
+    "TemplateInput",
+    "TemplateInputProblem",
+    "TemplateMaker",
+    "TemplateResponse",
+    "TemplateReview",
+    "TemplateSort",
+    "TemplateSource",
     "WorkspaceEnvironment",
     "SwitchProjectRequest",
     "CreateSandboxProjectRequest",

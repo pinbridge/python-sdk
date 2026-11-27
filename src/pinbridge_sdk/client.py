@@ -28,6 +28,7 @@ from .resources import (
     SchedulesResource,
     SystemResource,
     TeamResource,
+    TemplatesResource,
     WebhooksResource,
 )
 from .resources.base import SyncAPIResource
@@ -51,6 +52,7 @@ class PinbridgeClient:
         "projects": ProjectsResource,
         "pins": PinsResource,
         "schedules": SchedulesResource,
+        "templates": TemplatesResource,
         "webhooks": WebhooksResource,
         "rate_meter": RateMeterResource,
         "jobs": JobsResource,
@@ -126,8 +128,11 @@ class PinbridgeClient:
         headers: HeadersLike | None = None,
         content: str | bytes | None = None,
         follow_redirects: bool | None = None,
+        timeout: httpx.Timeout | None = None,
     ) -> httpx.Response:
+        """Send a request; ``timeout`` replaces the client's timeout for this one only."""
         url = self._core.build_url(path, path_params)
+        extra: dict[str, Any] = {} if timeout is None else {"timeout": timeout}
         response = self._http.request(
             method,
             url,
@@ -140,6 +145,7 @@ class PinbridgeClient:
             follow_redirects=(
                 self._core.follow_redirects if follow_redirects is None else follow_redirects
             ),
+            **extra,
         )
         if response.status_code >= 400:
             raise map_api_error(response)

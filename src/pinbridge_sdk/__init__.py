@@ -9,6 +9,10 @@ from .errors import (
     NotFoundError,
     PinbridgeError,
     RateLimitError,
+    RenderBusyError,
+    RenderUnavailableError,
+    TemplateInputsInvalidError,
+    TemplatesNotAvailableError,
     ValidationError,
 )
 from .models import *  # noqa: F403
@@ -21,6 +25,10 @@ __all__ = [
     "PinbridgeClient",
     "PinbridgeError",
     "RateLimitError",
+    "RenderBusyError",
+    "RenderUnavailableError",
+    "TemplateInputsInvalidError",
+    "TemplatesNotAvailableError",
     "ValidationError",
     "__version__",
 ]
