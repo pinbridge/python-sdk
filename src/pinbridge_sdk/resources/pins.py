@@ -151,17 +151,39 @@ def _serialize_import_filters(
 
 class PinsResource(SyncAPIResource):
     def create(self, data: PinCreate | Mapping[str, Any]) -> PinResponse:
+        """Publish a pin (``POST /v1/pins``).
+
+        With ``template_id`` and ``template_inputs`` the API draws the image from the
+        template first; the read timeout is raised to at least 90 seconds for that.
+        Drawing can raise :class:`~pinbridge_sdk.errors.TemplateInputsInvalidError`,
+        :class:`~pinbridge_sdk.errors.TemplatesNotAvailableError`,
+        :class:`~pinbridge_sdk.errors.RenderBusyError` or
+        :class:`~pinbridge_sdk.errors.RenderUnavailableError`.
+        """
         payload = _serialize_pin_input(data)
-        response = self._request("POST", "/v1/pins", json=payload)
+        response = self._request(
+            "POST", "/v1/pins", json=payload, timeout=self._draw_timeout(payload)
+        )
         return self._model(PinResponse, response)
 
     def validate(self, data: PinCreate | Mapping[str, Any]) -> PinValidationResponse:
-        """Dry-run a pin request (``POST /v1/pins/validate``); nothing is published."""
-        response = self._request("POST", "/v1/pins/validate", json=_serialize_pin_input(data))
+        """Dry-run a pin request (``POST /v1/pins/validate``); nothing is published.
+
+        With ``template_inputs`` the pin is drawn and thrown away; a problem drawing it
+        comes back as a failed ``media`` check rather than an error.
+        """
+        payload = _serialize_pin_input(data)
+        response = self._request(
+            "POST", "/v1/pins/validate", json=payload, timeout=self._draw_timeout(payload)
+        )
         return self._model(PinValidationResponse, response)
 
     def create_batch(self, pins: Sequence[PinCreate | Mapping[str, Any]]) -> PinBatchResponse:
-        """Publish up to 100 pins in one call with a per-item outcome."""
+        """Publish up to 100 pins in one call with a per-item outcome.
+
+        The API refuses a batch with ``template_inputs`` in it (422); send pins drawn
+        from a template one at a time with :meth:`create`.
+        """
         response = self._request("POST", "/v1/pins/batch", json=_serialize_pin_batch(pins))
         return self._model(PinBatchResponse, response)
 
@@ -392,17 +414,27 @@ class JobsResource(SyncAPIResource):
 
 class AsyncPinsResource(AsyncAPIResource):
     async def create(self, data: PinCreate | Mapping[str, Any]) -> PinResponse:
+        """Publish a pin (``POST /v1/pins``); see :meth:`PinsResource.create`."""
         payload = _serialize_pin_input(data)
-        response = await self._request("POST", "/v1/pins", json=payload)
+        response = await self._request(
+            "POST", "/v1/pins", json=payload, timeout=self._draw_timeout(payload)
+        )
         return self._model(PinResponse, response)
 
     async def validate(self, data: PinCreate | Mapping[str, Any]) -> PinValidationResponse:
         """Dry-run a pin request (``POST /v1/pins/validate``); nothing is published."""
-        response = await self._request("POST", "/v1/pins/validate", json=_serialize_pin_input(data))
+        payload = _serialize_pin_input(data)
+        response = await self._request(
+            "POST", "/v1/pins/validate", json=payload, timeout=self._draw_timeout(payload)
+        )
         return self._model(PinValidationResponse, response)
 
     async def create_batch(self, pins: Sequence[PinCreate | Mapping[str, Any]]) -> PinBatchResponse:
-        """Publish up to 100 pins in one call with a per-item outcome."""
+        """Publish up to 100 pins in one call with a per-item outcome.
+
+        The API refuses a batch with ``template_inputs`` in it (422); send pins drawn
+        from a template one at a time with :meth:`create`.
+        """
         response = await self._request("POST", "/v1/pins/batch", json=_serialize_pin_batch(pins))
         return self._model(PinBatchResponse, response)
 

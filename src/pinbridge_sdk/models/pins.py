@@ -16,6 +16,7 @@ PinTitle = Annotated[str, StringConstraints(max_length=100)]
 PinDescription = Annotated[str, StringConstraints(max_length=800)]
 PinAltText = Annotated[str, StringConstraints(max_length=500)]
 IdempotencyKey = Annotated[str, StringConstraints(max_length=255)]
+TemplateVersion = Annotated[int, Field(ge=1)]
 
 # Sort orders accepted by ``GET /v1/pins`` (API 1.34.0+).
 PinSort = Literal[
@@ -30,7 +31,36 @@ PinSort = Literal[
 ]
 
 
+def _check_template_media(model: Any) -> bool:
+    """Check ``template_inputs``; True when the image is drawn from a template.
+
+    Shared by :class:`PinCreate` and ``ScheduleCreate``, as in the API. With
+    ``template_inputs`` the template is the image source, so ``image_url`` and
+    ``asset_id`` must be left out.
+    """
+    if model.template_inputs is None:
+        return False
+    if model.template_id is None:
+        raise ValueError("template_inputs needs template_id")
+    if model.image_url is not None or model.asset_id is not None:
+        raise ValueError(
+            "Provide template_inputs or an image (image_url or asset_id), not both: "
+            "with template_inputs PinBridge draws the image"
+        )
+    return True
+
+
 class PinCreate(PinbridgeModel):
+    """A pin to publish (``POST /v1/pins``).
+
+    The image comes from exactly one of ``image_url``, ``asset_id`` or
+    ``template_inputs``. With ``template_id`` and ``template_inputs``, PinBridge draws
+    the image from the template at the size it was built at (API 1.77.0+).
+    ``template_version`` picks a version other than the current one. ``template_id``
+    next to an ``image_url`` or ``asset_id`` only records which template the image
+    was made with.
+    """
+
     account_id: UUID
     board_id: str
     title: PinTitle
@@ -43,15 +73,26 @@ class PinCreate(PinbridgeModel):
     image_url: HttpUrl | None = None
     asset_id: UUID | None = None
     idempotency_key: IdempotencyKey
+    # A gallery template or one of the workspace's (``client.templates.list()``).
+    template_id: UUID | None = None
+    # Defaults to the template's current version, or the version the gallery shows.
+    template_version: TemplateVersion | None = None
+    # Values by input name; ``client.templates.get(id).inputs`` lists the inputs and their
+    # limits. A photo input takes an image URL, {"src": url, "focus": [x, y], "zoom": 1 to 3,
+    # "flip": true}, or {"asset_id": id} with the same options.
+    template_inputs: dict[str, Any] | None = None
 
     @model_validator(mode="after")
     def validate_media_source(self) -> PinCreate:
-        if self.image_url is None and self.asset_id is None:
-            raise ValueError("Either image_url or asset_id must be provided")
+        drawn = _check_template_media(self)
+        if not drawn and self.image_url is None and self.asset_id is None:
+            raise ValueError("Either image_url, asset_id or template_inputs must be provided")
         if self.image_url is not None and self.asset_id is not None:
             raise ValueError("Provide either image_url or asset_id, not both")
         if self.cover_image_url is not None and self.cover_image_asset_id is not None:
             raise ValueError("Provide either cover_image_url or cover_image_asset_id, not both")
+        if self.template_version is not None and self.template_id is None:
+            raise ValueError("template_version needs template_id")
         return self
 
     @field_validator("dominant_color")
@@ -102,6 +143,16 @@ class PinImportCreate(PinCreate):
                 "run_at must include a timezone offset (for example 2026-03-06T10:00:00Z)"
             )
         return value.astimezone(timezone.utc)
+
+    @model_validator(mode="after")
+    def refuse_template_inputs(self) -> PinImportCreate:
+        # The API does not draw imported pins from templates yet.
+        if self.template_inputs is not None:
+            raise ValueError(
+                "template_inputs can't be imported yet: create these pins one at a time "
+                "with POST /v1/pins or POST /v1/schedules"
+            )
+        return self
 
 
 class PinUpdate(PinbridgeModel):
@@ -246,6 +297,9 @@ class PinResponse(PinbridgeModel):
     image_url: str
     asset_id: UUID | None = None
     board_id: str
+    # The pin template the image was drawn with, and the version used (API 1.70.0+).
+    template_id: UUID | None = None
+    template_version: int | None = None
     pinterest_pin_id: str | None = None
     error_code: str | None = None
     error_message: str | None = None

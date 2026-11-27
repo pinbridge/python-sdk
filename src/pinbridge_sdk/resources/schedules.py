@@ -54,13 +54,23 @@ def _serialize_schedule_filters(
 
 class SchedulesResource(SyncAPIResource):
     def create(self, data: ScheduleCreate | Mapping[str, Any]) -> ScheduleResponse:
-        response = self._request("POST", "/v1/schedules", json=_serialize_schedule_create(data))
+        """Schedule a pin (``POST /v1/schedules``).
+
+        With ``template_id`` and ``template_inputs`` the image is drawn now, so the
+        schedule publishes what was checked; the read timeout is raised to at least 90
+        seconds for that, and the template errors of :meth:`PinsResource.create` apply.
+        """
+        payload = _serialize_schedule_create(data)
+        response = self._request(
+            "POST", "/v1/schedules", json=payload, timeout=self._draw_timeout(payload)
+        )
         return self._model(ScheduleResponse, response)
 
     def validate(self, data: ScheduleCreate | Mapping[str, Any]) -> PinValidationResponse:
         """Dry-run a schedule request (``POST /v1/schedules/validate``); nothing is stored."""
+        payload = _serialize_schedule_create(data)
         response = self._request(
-            "POST", "/v1/schedules/validate", json=_serialize_schedule_create(data)
+            "POST", "/v1/schedules/validate", json=payload, timeout=self._draw_timeout(payload)
         )
         return self._model(PinValidationResponse, response)
 
@@ -188,15 +198,18 @@ class SchedulesResource(SyncAPIResource):
 
 class AsyncSchedulesResource(AsyncAPIResource):
     async def create(self, data: ScheduleCreate | Mapping[str, Any]) -> ScheduleResponse:
+        """Schedule a pin (``POST /v1/schedules``); see :meth:`SchedulesResource.create`."""
+        payload = _serialize_schedule_create(data)
         response = await self._request(
-            "POST", "/v1/schedules", json=_serialize_schedule_create(data)
+            "POST", "/v1/schedules", json=payload, timeout=self._draw_timeout(payload)
         )
         return self._model(ScheduleResponse, response)
 
     async def validate(self, data: ScheduleCreate | Mapping[str, Any]) -> PinValidationResponse:
         """Dry-run a schedule request (``POST /v1/schedules/validate``); nothing is stored."""
+        payload = _serialize_schedule_create(data)
         response = await self._request(
-            "POST", "/v1/schedules/validate", json=_serialize_schedule_create(data)
+            "POST", "/v1/schedules/validate", json=payload, timeout=self._draw_timeout(payload)
         )
         return self._model(PinValidationResponse, response)
 

@@ -5,7 +5,24 @@ from __future__ import annotations
 from collections.abc import Mapping
 from urllib.parse import urljoin
 
+import httpx
+
 from ._types import HeadersLike, PathValue
+
+# Drawing a pin from a template can take the API up to a minute (the wait for a free
+# renderer included) plus the photo downloads, longer than the client's 30 s default.
+TEMPLATE_DRAW_TIMEOUT_SECONDS = 90.0
+
+
+def template_draw_timeout(current: httpx.Timeout) -> httpx.Timeout:
+    """The client's timeout, with a read timeout of at least 90 seconds.
+
+    A read timeout the caller set longer, or turned off, is kept.
+    """
+    read = current.read
+    if read is not None:
+        read = max(read, TEMPLATE_DRAW_TIMEOUT_SECONDS)
+    return httpx.Timeout(connect=current.connect, read=read, write=current.write, pool=current.pool)
 
 
 class ClientCore:
