@@ -311,9 +311,66 @@ timestamps with an explicit timezone offset (for example `2026-03-06T10:00:00Z`)
 - `bulk_retry([schedule_id, ...])`
 - `bulk_delete([schedule_id, ...])`
 
-Pins and schedules accept either a public `image_url` or an uploaded `asset_id`. Video publishes and schedules should use uploaded assets.
+Pins and schedules accept a public `image_url`, an uploaded `asset_id`, or `template_inputs` to draw the image from a template (see below). Video publishes and schedules should use uploaded assets.
 Pinterest-compatible limits are enforced in SDK models: `title <= 100`, `description <= 800`,
 `alt_text <= 500`, and URLs (`link_url`, `cover_image_url`) `<= 2048`.
+
+### Templates (`client.templates`)
+
+- `list(limit=50, offset=0, source=None, niche=None, q=None, sort=None)`: the workspace's own templates and the gallery. `source` is `workspace` or `gallery`, `niche` one slug or a list, `sort` one of `updated` (default), `pins`, `copies`, `name`
+- `list_page(...)`: same filters, returns a `Page` with `items`, `total` and `has_more`
+- `get(template_id, gallery=False)`: one template with its `definition`. `inputs` lists what a pin can set and `size` is the pin size it draws
+
+A pin or schedule drawn from a template sends `template_id` and `template_inputs` (values by
+input name) and leaves `image_url` and `asset_id` out. PinBridge draws the image at the
+template's size, then publishes it. A schedule is drawn when it is created. `template_version`
+picks a version other than the current one.
+
+```python
+from datetime import datetime, timezone
+
+from pinbridge_sdk.models import PinCreate, ScheduleCreate
+
+templates = client.templates.list(source="gallery", niche="food", q="recipe")
+template = client.templates.get(templates[0].id)
+for name, spec in template.inputs.items():
+    print(name, spec.type, "required" if spec.required else "optional", spec.max_length)
+
+inputs = {
+    "title": "Lemon pasta in 15 minutes",
+    "photo": {"src": "https://example.com/pasta.jpg", "focus": [0.5, 0.4]},
+}
+pin = client.pins.create(
+    PinCreate(
+        account_id=account.id,
+        board_id=board.id,
+        title="Lemon pasta",
+        link_url="https://example.com/lemon-pasta",
+        template_id=template.id,
+        template_inputs=inputs,
+        idempotency_key="lemon-pasta-1",
+    )
+)
+print(pin.template_id, pin.template_version)
+
+schedule = client.schedules.create(
+    ScheduleCreate(
+        account_id=account.id,
+        board_id=board.id,
+        title="Lemon pasta",
+        run_at=datetime(2026, 12, 1, 9, 0, tzinfo=timezone.utc),
+        template_id=template.id,
+        template_inputs=inputs,
+    )
+)
+```
+
+A photo input takes an image URL, `{"src": url, "focus": [x, y], "zoom": 1 to 3, "flip": true}`,
+or `{"asset_id": id}` with the same options (focus values go from 0 to 1). `client.pins.validate(...)` draws the pin and
+throws it away, so you can check the inputs first. Batches (`create_batch`) and imports don't
+draw from templates yet; send those pins one at a time. Drawing can take up to a minute when
+the renderers are busy, so requests with `template_inputs` wait at least 90 seconds for the
+answer.
 
 ### Dashboard (`client.dashboard`)
 
@@ -421,6 +478,32 @@ try:
         client.auth.me()
 except APIError as exc:
     print(exc.status_code, exc.message, exc.code)
+```
+
+Drawing a pin from a template can also raise:
+
+- `pinbridge_sdk.TemplateInputsInvalidError` (422, a `ValidationError`): `problems` lists each bad input with its `code` (`required`, `too_long`, `wrong_type`, ...) and `message`
+- `pinbridge_sdk.TemplatesNotAvailableError`: pin templates are not turned on for the workspace yet
+- `pinbridge_sdk.RenderBusyError` (503): every renderer is busy; send the same request again after `retry_after` seconds
+- `pinbridge_sdk.RenderUnavailableError` (503): pins can't be drawn right now; `RenderBusyError` is a subclass
+
+Nothing is created when one of these is raised. Other template codes keep the class of their
+status code, with `code` set: `template_not_found` and `template_version_not_found` on a pin or
+schedule are a `ValidationError` (422), for example.
+
+```python
+import time
+
+from pinbridge_sdk import RenderBusyError, TemplateInputsInvalidError
+
+try:
+    pin = client.pins.create(draft)
+except TemplateInputsInvalidError as exc:
+    for problem in exc.problems:
+        print(problem.input, problem.code, problem.message)
+except RenderBusyError as exc:
+    time.sleep(exc.retry_after or 5)
+    pin = client.pins.create(draft)  # same idempotency_key, so no duplicate
 ```
 
 ## Extending the SDK
