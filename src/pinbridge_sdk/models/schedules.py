@@ -10,6 +10,7 @@ from pydantic import Field, HttpUrl, StringConstraints, field_validator, model_v
 
 from .base import PinbridgeModel
 from .common import ScheduleStatus
+from .pins import TemplateVersion, _check_template_media
 
 ScheduleTitle = Annotated[str, StringConstraints(max_length=100)]
 ScheduleDescription = Annotated[str, StringConstraints(max_length=800)]
@@ -29,6 +30,14 @@ ScheduleSort = Literal[
 
 
 class ScheduleCreate(PinbridgeModel):
+    """A pin to publish at ``run_at`` (``POST /v1/schedules``).
+
+    The image comes from exactly one of ``image_url``, ``asset_id`` or
+    ``template_inputs``, as for :class:`~pinbridge_sdk.models.PinCreate`. A schedule
+    with ``template_inputs`` is drawn when it is created (API 1.77.0+), so it
+    publishes the image that was checked then.
+    """
+
     account_id: UUID
     run_at: datetime
     board_id: str
@@ -41,15 +50,22 @@ class ScheduleCreate(PinbridgeModel):
     link_url: HttpUrl | None = None
     image_url: HttpUrl | None = None
     asset_id: UUID | None = None
+    # Same meaning as on PinCreate.
+    template_id: UUID | None = None
+    template_version: TemplateVersion | None = None
+    template_inputs: dict[str, Any] | None = None
 
     @model_validator(mode="after")
     def validate_media_source(self) -> ScheduleCreate:
-        if self.image_url is None and self.asset_id is None:
-            raise ValueError("Either image_url or asset_id must be provided")
+        drawn = _check_template_media(self)
+        if not drawn and self.image_url is None and self.asset_id is None:
+            raise ValueError("Either image_url, asset_id or template_inputs must be provided")
         if self.image_url is not None and self.asset_id is not None:
             raise ValueError("Provide either image_url or asset_id, not both")
         if self.cover_image_url is not None and self.cover_image_asset_id is not None:
             raise ValueError("Provide either cover_image_url or cover_image_asset_id, not both")
+        if self.template_version is not None and self.template_id is None:
+            raise ValueError("template_version needs template_id")
         return self
 
     @field_validator("run_at")
@@ -154,6 +170,10 @@ class ScheduleResponse(PinbridgeModel):
     run_at: datetime
     status: ScheduleStatus
     payload: dict[str, Any]
+    # The pin template the image was drawn with, and the version used; the pin gets them
+    # too (API 1.70.0+).
+    template_id: UUID | None = None
+    template_version: int | None = None
     last_error: str | None = None
     pin_id: UUID | None = None
     created_at: datetime
